@@ -39,8 +39,12 @@
             cursor: pointer;
             user-select: none;
             transition: transform 0.1s;
-            margin-top: 10vh;
+            margin: auto;
             overflow: hidden;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         #coin img {
             width: 80%;
@@ -159,11 +163,11 @@
         <div id="boost-page" class="page">
             <h2>Your daily boosters:</h2>
             <div class="booster">
-                <p>Tapping Guru 3/3 [x2 points per tap]</p>
+                <p data-booster="tappingGuru">Tapping Guru 3/3 [x2 points per tap]</p>
                 <button onclick="activateBooster('tappingGuru')">Activate</button>
             </div>
             <div class="booster">
-                <p>Full Tank 3/3 [instantly recharge the tank]</p>
+                <p data-booster="fullTank">Full Tank 3/3 [instantly recharge the tank]</p>
                 <button onclick="activateBooster('fullTank')">Activate</button>
             </div>
             <h2>Boosters:</h2>
@@ -260,8 +264,10 @@
 
             const coin = document.getElementById('coin');
             if (coin) {
-                coin.style.transform = 'scale(0.98)';
-                setTimeout(() => { coin.style.transform = 'scale(1)'; }, 100);
+                coin.style.transform = 'translate(-50%, -50%) rotate(5deg)';
+                setTimeout(() => { 
+                    coin.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+                }, 100);
             }
 
             createPointPopup(
@@ -321,7 +327,7 @@
         }
 
         function updateBoosterDisplay(boosterType) {
-            const boosterElement = document.querySelector(`.booster p:contains('${boosterType}')`);
+            const boosterElement = document.querySelector(`.booster p[data-booster="${boosterType}"]`);
             if (boosterElement) {
                 boosterElement.textContent = `${boosterType} ${boosters[boosterType].uses}/3 [${boosterType === 'tappingGuru' ? 'x2 points per tap' : 'instantly recharge the tank'}]`;
             }

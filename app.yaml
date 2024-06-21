@@ -1,0 +1,10 @@
+name: vnvnc-coin-tapper
+region: nyc
+services:
+  - name: web
+    github:
+      repo: your-github-username/your-repo-name
+      branch: main
+    envs:
+      - key: MONGODB_URI
+        value: mongodb+srv://kirlichps3:wYRks8y0VujfdQ8G@<cluster-name>.mongodb.net/vnvnc_coin_tapper?retryWrites=true&w=majority

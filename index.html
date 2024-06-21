@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,12 +39,11 @@
             cursor: pointer;
             user-select: none;
             transition: transform 0.1s;
-            margin: auto;
-            overflow: hidden;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            z-index: 10;
         }
         #coin img {
             width: 80%;
@@ -195,7 +193,7 @@
         let pointsLimit = 2000;
         let availablePoints = 2000;
         let lastRefillTime = Date.now();
-        let isMultitapEnabled = false;
+              let isMultitapEnabled = false;
         let rechargeMultiplier = 1;
         let tappingMultiplier = 1;
         const refillInterval = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
@@ -204,6 +202,13 @@
             tappingGuru: { uses: 3, active: false },
             fullTank: { uses: 3, active: false }
         };
+
+        function getUserId() {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                return tg.initDataUnsafe.user.id.toString();
+            }
+            return 'unknown_user';
+        }
 
         function showError(message) {
             console.error(message);
@@ -216,30 +221,31 @@
             }
         }
 
-      async function updateScore() {
-    const scoreContainer = document.getElementById('score-container');
-    if (scoreContainer) {
-        scoreContainer.textContent = `SCORE: ${score} ⭐️`;
-        try {
-            await tg.CloudStorage.setItem(getUserId(), score.toString());
-        } catch (error) {
-            console.error('Failed to save score:', error);
-            showError('Failed to save score. Please try again.');
+        async function updateScore() {
+            const scoreContainer = document.getElementById('score-container');
+            if (scoreContainer) {
+                scoreContainer.textContent = `SCORE: ${score} ⭐️`;
+                try {
+                    await tg.CloudStorage.setItem(getUserId(), score.toString());
+                } catch (error) {
+                    console.error('Failed to save score:', error);
+                    showError('Failed to save score. Please try again.');
+                }
+            }
         }
-    }
-}
+
         async function loadScore() {
-    try {
-        const savedScore = await tg.CloudStorage.getItem(getUserId());
-        if (savedScore !== null) {
-            score = parseInt(savedScore, 10);
-            updateScore();
+            try {
+                const savedScore = await tg.CloudStorage.getItem(getUserId());
+                if (savedScore !== null) {
+                    score = parseInt(savedScore, 10);
+                    updateScore();
+                }
+            } catch (error) {
+                console.error('Failed to load score:', error);
+                showError('Failed to load score. Starting from 0.');
+            }
         }
-    } catch (error) {
-        console.error('Failed to load score:', error);
-        showError('Failed to load score. Starting from 0.');
-    }
-}
 
         function updateProgressBar() {
             const progressBar = document.getElementById('progress');
@@ -269,10 +275,8 @@
             }, 500);
         }
 
-        function onCoinTap(event) {
+        async function onCoinTap(event) {
             console.log("Coin tapped");
-             await updateScore();
-
             if (availablePoints <= 0) return;
 
             const basePoints = isMultitapEnabled ? 5 : 1;
@@ -280,7 +284,7 @@
             score += pointsToAdd;
             availablePoints -= pointsToAdd;
 
-            updateScore();
+            await updateScore();
             updateProgressBar();
 
             const coin = document.getElementById('coin');
@@ -292,8 +296,8 @@
             }
 
             createPointPopup(
-                event.clientX,
-                event.clientY,
+                event.touches ? event.touches[0].clientX : event.clientX,
+                event.touches ? event.touches[0].clientY : event.clientY,
                 pointsToAdd
             );
 
@@ -322,7 +326,7 @@
             }
         }
 
-        function activateBooster(boosterType) {
+        async function activateBooster(boosterType) {
             console.log("Activating booster:", boosterType);
             if (boosters[boosterType].uses > 0) {
                 boosters[boosterType].uses--;
@@ -342,6 +346,7 @@
                 }
                 
                 updateBoosterDisplay(boosterType);
+                await updateScore(); // Save the updated state
             } else {
                 showError(`No more ${boosterType} uses left!`);
             }
@@ -354,7 +359,7 @@
             }
         }
 
-        function purchaseBooster(boosterType) {
+        async function purchaseBooster(boosterType) {
             console.log("Purchasing booster:", boosterType);
             if (boosterType === 'multitap' && score >= 500) {
                 score -= 500;
@@ -363,7 +368,7 @@
                     isMultitapEnabled = false;
                     showError("Multitap deactivated.");
                 }, 3 * 60 * 60 * 1000);
-                updateScore();
+                await updateScore();
                 showError("Multitap activated for 3 hours!");
             } else if (boosterType === 'rechargingSpeed' && score >= 2000) {
                 score -= 2000;
@@ -372,39 +377,38 @@
                     rechargeMultiplier = 1;
                     showError("Recharging speed returned to normal.");
                 }, 3 * 60 * 60 * 1000);
-                updateScore();
+                await updateScore();
                 showError("Recharging speed increased for 3 hours!");
             } else {
                 showError("Not enough stars to purchase this booster!");
             }
         }
 
-        function getUserId() {
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        return tg.initDataUnsafe.user.id.toString();
-    }
-    return 'unknown_user';
-}
+        function handleCoinTap(event) {
+            event.preventDefault(); // Prevent default touch behavior
+            onCoinTap(event);
+        }
 
-       async function initGame() {
-    console.log("Initializing game");
-    tg.expand();
-    const coin = document.getElementById('coin');
-    if (coin) {
-        coin.addEventListener('click', onCoinTap);
-    }
-    await loadScore(); // Load the saved score
-    setInterval(refillPoints, 60000); // Check for refill every minute
-    updateProgressBar();
-    tg.ready();
-}
-     document.addEventListener('DOMContentLoaded', () => {
-    initGame().catch(error => {
-        console.error('Error initializing game:', error);
-        showError('Failed to initialize game. Please try again.');
-    });
-});
+                async function initGame() {
+            console.log("Initializing game");
+            tg.expand();
+            const coin = document.getElementById('coin');
+            if (coin) {
+                coin.addEventListener('touchstart', handleCoinTap);
+                coin.addEventListener('click', handleCoinTap);
+            }
+            await loadScore(); // Load the saved score
+            setInterval(refillPoints, 60000); // Check for refill every minute
+            updateProgressBar();
+            tg.ready();
+        }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            initGame().catch(error => {
+                console.error('Error initializing game:', error);
+                showError('Failed to initialize game. Please try again.');
+            });
+        });
 
         // Global error handler
         window.onerror = function(message, source, lineno, colno, error) {

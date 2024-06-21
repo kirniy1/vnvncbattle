@@ -126,130 +126,142 @@
         <button id="boosterPageBtn">Бустеры</button>
     </div>
 
-    <script>
-        const tgWebApp = window.Telegram.WebApp;
-        let userId;
-        let isFirstLaunch = true;
+   <script>
+    const tgWebApp = window.Telegram.WebApp;
+    let userId;
+    let isFirstLaunch = true;
 
-        // Function to show welcome popup
-        function showWelcomePopup() {
-            tgWebApp.showPopup({
-                title: 'Welcome to VNVNC Concert Hall Coin Tapper!',
-                message: 'Tap the coin to earn stars and unlock boosters. Your progress will be saved automatically.',
-                buttons: [{text: 'Start Tapping!', type: 'ok'}]
-            });
-        }
+    // Function to show welcome popup
+    function showWelcomePopup() {
+        tgWebApp.showPopup({
+            title: 'Добро пожаловать в VNVNC Concert Hall Coin Tapper!',
+            message: 'Нажимайте на монету, чтобы заработать звезды и открыть бустеры. Ваш прогресс будет сохраняться автоматически.',
+            buttons: [{text: 'Начать игру!', type: 'ok'}]
+        });
+    }
 
-        let stars = 0;
-        let tappingPoints = 2000;
-        const maxTappingPoints = 2000;
-        let tappingMultiplier = 1;
-        let rechargeMultiplier = 1;
-        let tappingGuruUses = 3;
-        let fullTankUses = 3;
-        let lastSaveTime = Date.now();
+    let stars = 0;
+    let tappingPoints = 2000;
+    const maxTappingPoints = 2000;
+    let tappingMultiplier = 1;
+    let rechargeMultiplier = 1;
+    let tappingGuruUses = 3;
+    let fullTankUses = 3;
+    let lastSaveTime = Date.now();
 
-        const starsElement = document.getElementById('stars');
-        const tappingPointsElement = document.getElementById('tappingPoints');
-        const progressElement = document.getElementById('progress');
-        const coinElement = document.getElementById('coin');
-        const tappingPageElement = document.getElementById('tappingPage');
-        const boosterPageElement = document.getElementById('boosterPage');
+    const starsElement = document.getElementById('stars');
+    const tappingPointsElement = document.getElementById('tappingPoints');
+    const progressElement = document.getElementById('progress');
+    const coinElement = document.getElementById('coin');
+    const tappingPageElement = document.getElementById('tappingPage');
+    const boosterPageElement = document.getElementById('boosterPage');
 
-        // Initialize Telegram WebApp
-        tgWebApp.ready();
+    // Initialize Telegram WebApp
+    tgWebApp.ready();
 
-        // Check if user data is available
-        if (tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
-            userId = tgWebApp.initDataUnsafe.user.id;
-            checkFirstLaunch();
-        } else {
-            console.error('User data not available');
-            tgWebApp.showAlert('Error: Unable to retrieve user data. Please try again later.');
-        }
+    // Check if user data is available
+    if (tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
+        userId = tgWebApp.initDataUnsafe.user.id;
+        checkFirstLaunch();
+    } else {
+        console.error('User data not available');
+        tgWebApp.showAlert('Ошибка: Не удалось получить данные пользователя. Пожалуйста, попробуйте еще раз позже.');
+    }
 
-        function checkFirstLaunch() {
-            tgWebApp.CloudStorage.getItem(`user_${userId}_launched`, (error, result) => {
-                if (error || !result) {
-                    isFirstLaunch = true;
-                    showWelcomePopup();
-                    tgWebApp.CloudStorage.setItem(`user_${userId}_launched`, 'true');
-                } else {
-                    isFirstLaunch = false;
-                }
-                loadUserData(); // Load user data after checking first launch
-            });
-        }
+    function checkFirstLaunch() {
+        tgWebApp.CloudStorage.getItem(`user_${userId}_launched`, (error, result) => {
+            if (error || !result) {
+                isFirstLaunch = true;
+                showWelcomePopup();
+                tgWebApp.CloudStorage.setItem(`user_${userId}_launched`, 'true');
+            } else {
+                isFirstLaunch = false;
+            }
+            loadUserData(); // Load user data after checking first launch
+        });
+    }
 
-        // Load user data
-        function loadUserData() {
-            tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
-                if (error) {
-                    console.error('Error loading user data:', error);
-                } else if (result) {
-                    const userData = JSON.parse(result);
-                    stars = userData.stars || 0;
-                    tappingPoints = userData.tappingPoints || maxTappingPoints;
-                    tappingGuruUses = userData.tappingGuruUses || 3;
-                    fullTankUses = userData.fullTankUses || 3;
-                    lastSaveTime = userData.lastSaveTime || Date.now();
-                    updateUI();
-                }
-            });
-        }
-
-        // Save user data
-        function saveUserData() {
-            const userData = {
-                stars: stars,
-                tappingPoints: tappingPoints,
-                tappingGuruUses: tappingGuruUses,
-                fullTankUses: fullTankUses,
-                lastSaveTime: Date.now()
-            };
-            tgWebApp.CloudStorage.setItem(`user_${userId}_data`, JSON.stringify(userData), (error, result) => {
-                if (error) {
-                    console.error('Error saving user data:', error);
-                } else {
-                    console.log('User data saved successfully');
-                }
-            });
-        }
-
-        // Update UI
-        function updateUI() {
-            starsElement.textContent = stars;
-            tappingPointsElement.textContent = tappingPoints;
-            progressElement.style.width = `${(tappingPoints / maxTappingPoints) * 100}%`;
-        }
-
-      // Coin tapping
-        coinElement.addEventListener('click', () => {
-            if (tappingPoints > 0) {
-                stars += tappingMultiplier;
-                tappingPoints--;
+    // Load user data
+    function loadUserData() {
+        tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
+            if (error) {
+                console.error('Error loading user data:', error);
+            } else if (result) {
+                const userData = JSON.parse(result);
+                stars = userData.stars || 0;
+                tappingPoints = userData.tappingPoints || maxTappingPoints;
+                tappingGuruUses = userData.tappingGuruUses || 3;
+                fullTankUses = userData.fullTankUses || 3;
+                lastSaveTime = userData.lastSaveTime || Date.now();
                 updateUI();
-                saveUserData();
-
-                // Coin animation
-                coinElement.classList.add('coin-animation');
-                setTimeout(() => {
-                    coinElement.classList.remove('coin-animation');
-                }, 200);
             }
         });
+    }
 
-        // Recharge tapping points
-        setInterval(() => {
-            if (tappingPoints < maxTappingPoints) {
-tappingPoints += rechargeMultiplier;
-if (tappingPoints > maxTappingPoints) {
-tappingPoints = maxTappingPoints;
-}
-updateUI();
-saveUserData();
-}
-}, 1000); // Recharge every second
+    // Save user data
+    function saveUserData() {
+        const userData = {
+            stars: stars,
+            tappingPoints: tappingPoints,
+            tappingGuruUses: tappingGuruUses,
+            fullTankUses: fullTankUses,
+            lastSaveTime: Date.now()
+        };
+        tgWebApp.CloudStorage.setItem(`user_${userId}_data`, JSON.stringify(userData), (error, result) => {
+            if (error) {
+                console.error('Error saving user data:', error);
+            } else {
+                console.log('User data saved successfully');
+            }
+        });
+    }
+
+    // Update UI
+    function updateUI() {
+        starsElement.textContent = stars;
+        tappingPointsElement.textContent = tappingPoints;
+        progressElement.style.width = `${(tappingPoints / maxTappingPoints) * 100}%`;
+    }
+
+    // Coin tapping
+    coinElement.addEventListener('click', (event) => {
+        if (tappingPoints > 0) {
+            const earnedPoints = tappingMultiplier;
+            stars += earnedPoints;
+            tappingPoints--;
+            updateUI();
+            saveUserData();
+
+            // Coin animation
+            coinElement.classList.add('coin-animation');
+            setTimeout(() => {
+                coinElement.classList.remove('coin-animation');
+            }, 200);
+
+            // Points animation
+            const pointsElement = document.createElement('div');
+            pointsElement.textContent = `+${earnedPoints} ⭐️`;
+            pointsElement.className = 'points-animation';
+            pointsElement.style.left = `${event.clientX - coinElement.offsetLeft}px`;
+            pointsElement.style.top = `${event.clientY - coinElement.offsetTop}px`;
+            coinElement.appendChild(pointsElement);
+            setTimeout(() => {
+                pointsElement.remove();
+            }, 1000);
+        }
+    });
+
+    // Recharge tapping points
+    setInterval(() => {
+        if (tappingPoints < maxTappingPoints) {
+            tappingPoints += rechargeMultiplier;
+            if (tappingPoints > maxTappingPoints) {
+                tappingPoints = maxTappingPoints;
+            }
+            updateUI();
+            saveUserData();
+        }
+    }, 1000); // Recharge every second
 
     // Booster: Tapping Guru
     document.getElementById('tappingGuru').addEventListener('click', () => {
@@ -260,9 +272,9 @@ saveUserData();
                 tappingMultiplier = 1;
             }, 5 * 60 * 1000); // 5 minutes
             updateBoosterButtonStates();
-            window.Telegram.WebApp.showAlert('Tapping Guru activated for 5 minutes!');
+            window.Telegram.WebApp.showAlert('Гуру нажатий активирован на 5 минут!');
         } else {
-            window.Telegram.WebApp.showAlert('No more Tapping Guru uses left for today!');
+            window.Telegram.WebApp.showAlert('На сегодня больше нет использований Гуру нажатий!');
         }
     });
 
@@ -273,9 +285,9 @@ saveUserData();
             fullTankUses--;
             updateUI();
             updateBoosterButtonStates();
-            window.Telegram.WebApp.showAlert('Full Tank activated!');
+            window.Telegram.WebApp.showAlert('Полный бак активирован!');
         } else {
-            window.Telegram.WebApp.showAlert('No more Full Tank uses left for today!');
+            window.Telegram.WebApp.showAlert('На сегодня больше нет использований Полного бака!');
         }
     });
 
@@ -289,48 +301,35 @@ saveUserData();
             }, 3 * 60 * 60 * 1000); // 3 hours
             updateUI();
             saveUserData();
-            window.Telegram.WebApp.showAlert('Multitap activated for 3 hours!');
+            window.Telegram.WebApp.showAlert('Мультинажатие активировано на 3 часа!');
         } else {
-            window.Telegram.WebApp.showAlert('Not enough stars to activate Multitap!');
+            window.Telegram.WebApp.showAlert('Недостаточно звезд для активации Мультинажатия!');
         }
     });
 
     // Booster: Recharging Speed
-    document.getElementById('rechargingSpeed').addEventListener('click', () => {
-        if (stars >= 2000) {
-            stars -= 2000;
-            rechargeMultiplier = 3;
-            setTimeout(() => {
-                rechargeMultiplier = 1;
-            }, 3 * 60 * 60 * 1000); // 3 hours
-            updateUI();
-            saveUserData();
-            window.Telegram.WebApp.showAlert('Recharging Speed increased for 3 hours!');
-        } else {
-            window.Telegram.WebApp.showAlert('Not enough stars to activate Recharging Speed!');
-        }
-    });
+    document.getElementById('rechargingSpeed').addEventListener('click', () => { if (stars >= 2000) { stars -= 2000; rechargeMultiplier = 3; setTimeout(() => { rechargeMultiplier = 1; }, 3 * 60 * 60 * 1000); // 3 hours updateUI(); saveUserData(); window.Telegram.WebApp.showAlert('Скорость зарядки увеличена на 3 часа!'); } else { window.Telegram.WebApp.showAlert('Недостаточно звезд для увеличения Скорости зарядки!'); } });
+// Navigation
+document.getElementById('tappingPageBtn').addEventListener('click', () => {
+    tappingPageElement.style.display = 'block';
+    boosterPageElement.style.display = 'none';
+});
 
-    // Navigation
-    document.getElementById('tappingPageBtn').addEventListener('click', () => {
-        tappingPageElement.style.display = 'block';
-        boosterPageElement.style.display = 'none';
-    });
+document.getElementById('boosterPageBtn').addEventListener('click', () => {
+    tappingPageElement.style.display = 'none';
+    boosterPageElement.style.display = 'block';
+    updateBoosterButtonStates();
+});
 
-    document.getElementById('boosterPageBtn').addEventListener('click', () => {
-        tappingPageElement.style.display = 'none';
-        boosterPageElement.style.display = 'block';
-        updateBoosterButtonStates();
-    });
+// Update booster button states
+function updateBoosterButtonStates() {
+    document.getElementById('tappingGuru').disabled = tappingGuruUses === 0;
+    document.getElementById('fullTank').disabled = fullTankUses === 0;
+}
 
-    // Update booster button states
-    function updateBoosterButtonStates() {
-        document.getElementById('tappingGuru').disabled = tappingGuruUses === 0;
-        document.getElementById('fullTank').disabled = fullTankUses === 0;
-    }
+// Save data periodically
+setInterval(saveUserData, 60000); // Save every minute
 
-    // Save data periodically
-    setInterval(saveUserData, 60000); // Save every minute
 </script>
 </body> 
 </html> 

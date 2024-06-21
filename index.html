@@ -255,6 +255,7 @@
     const fullTankButton = document.getElementById('fullTank');
     const tappingGuruUsesElement = document.getElementById('tappingGuruUses');
     const fullTankUsesElement = document.getElementById('fullTankUses');
+    let dataVersion = 1; // Increment this when you make changes to the data structure
 
     tgWebApp.ready();
 
@@ -287,10 +288,42 @@
         });
     }
 
-    function saveUserData(data) {
-        saveQueue.push(data);
-        processSaveQueue();
-    }
+function saveUserData(data) {
+    data.version = dataVersion;
+    saveQueue.push(data);
+    processSaveQueue();
+    localStorage.setItem(`user_${userId}_data`, JSON.stringify(data));
+}
+
+function loadUserData() {
+    tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
+        let data;
+        if (error || !result) {
+            console.error('Error loading user data from CloudStorage:', error);
+            const localData = localStorage.getItem(`user_${userId}_data`);
+            if (localData) {
+                data = JSON.parse(localData);
+            }
+        } else {
+            data = JSON.parse(result);
+        }
+        
+        if (data && data.version === dataVersion) {
+            applyUserData(data);
+        } else {
+            initializeUserData();
+        }
+        updateUI();
+    });
+}
+
+function applyUserData(data) {
+    stars = data.stars || 0;
+    tappingPoints = data.tappingPoints || maxTappingPoints;
+    tappingGuruUses = data.tappingGuruUses || 3;
+    fullTankUses = data.fullTankUses || 3;
+    lastSaveTime = data.lastSaveTime || Date.now();
+}
 
     function processSaveQueue() {
         if (saveQueue.length === 0) return;
@@ -309,6 +342,47 @@
             }
         });
     }
+    function saveUserData(data) {
+    saveQueue.push(data);
+    processSaveQueue();
+    // Backup to local storage
+    localStorage.setItem(`user_${userId}_data`, JSON.stringify(data));
+}
+    function retryFailedSaves() {
+    if (saveQueue.length > 0) {
+        console.log('Retrying failed saves...');
+        processSaveQueue();
+    }
+}
+
+// Call this at the end of the script
+setInterval(retryFailedSaves, 60000); // Retry every minute
+
+function loadUserData() {
+    tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
+        if (error || !result) {
+            console.error('Error loading user data from CloudStorage:', error);
+            // Try to load from local storage
+            const localData = localStorage.getItem(`user_${userId}_data`);
+            if (localData) {
+                applyUserData(JSON.parse(localData));
+            } else {
+                initializeUserData();
+            }
+        } else {
+            applyUserData(JSON.parse(result));
+        }
+        updateUI();
+    });
+}
+
+function applyUserData(data) {
+    stars = data.stars || 0;
+    tappingPoints = data.tappingPoints || maxTappingPoints;
+    tappingGuruUses = data.tappingGuruUses || 3;
+    fullTankUses = data.fullTankUses || 3;
+    lastSaveTime = data.lastSaveTime || Date.now();
+}
 
     function initializeUserData() {
         stars = 0;
@@ -327,11 +401,19 @@
         updateBoosterButtonStates();
     }
 
-    function updateStars(amount) {
-        stars += amount;
-        updateUI();
-        saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
+   let lastSaveTime = 0;
+const SAVE_COOLDOWN = 5000; // 5 seconds
+
+function updateStars(amount) {
+    stars += amount;
+    updateUI();
+    
+    const now = Date.now();
+    if (now - lastSaveTime > SAVE_COOLDOWN) {
+        saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: now});
+        lastSaveTime = now;
     }
+}
 
     coinElement.addEventListener('click', (event) => {
         if (tappingPoints > 0) {

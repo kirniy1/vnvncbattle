@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VNVNC Coin Battle</title>
+    <title>VNVNC COIN BATTLE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -12,8 +12,8 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: black;
-            color: red;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -31,7 +31,7 @@
             margin-bottom: 10px;
         }
         .framed {
-            border: 2px solid red;
+            border: 2px solid var(--tg-theme-button-color);
             border-radius: 10px;
             padding: 5px;
             margin-bottom: 5px;
@@ -40,12 +40,12 @@
             font-size: 24px;
             margin: 0;
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(255,0,0,0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         #instructions {
             font-size: 14px;
             margin-top: 5px;
-            background-color: rgba(255, 0, 0, 0.1);
+            background-color: var(--tg-theme-secondary-bg-color);
             padding: 5px;
             border-radius: 5px;
         }
@@ -69,10 +69,10 @@
             color: #2b2640;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
             box-shadow: 
-                0 10px 20px rgba(255,0,0,0.4), 
-                0 5px 10px rgba(255,0,0,0.3),
-                inset 0 -10px 10px -5px rgba(0,0,0,0.5),
-                inset 0 10px 10px -5px rgba(255,255,255,0.5);
+                0 10px 20px rgba(0, 0, 0, 0.4), 
+                0 5px 10px rgba(0, 0, 0, 0.3),
+                inset 0 -10px 10px -5px rgba(0, 0, 0, 0.5),
+                inset 0 10px 10px -5px rgba(255, 255, 255, 0.5);
             position: relative;
             overflow: hidden;
             transition: transform 0.1s;
@@ -86,9 +86,9 @@
             height: 200%;
             background: linear-gradient(
                 45deg,
-                rgba(255,255,255,0) 0%,
-                rgba(255,255,255,0.1) 50%,
-                rgba(255,255,255,0) 100%
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(255, 255, 255, 0) 100%
             );
             transform: rotate(45deg);
             animation: shine 3s infinite;
@@ -107,14 +107,14 @@
         #progressBar {
             width: 100%;
             height: 20px;
-            background-color: #1f1c30;
+            background-color: var(--tg-theme-secondary-bg-color);
             border-radius: 10px;
             overflow: hidden;
         }
         #progress {
             width: 0%;
             height: 100%;
-            background-color: #4CAF50;
+            background-color: var(--tg-theme-button-color);
             transition: width 0.5s;
         }
         #tappingPoints {
@@ -125,13 +125,13 @@
             display: flex;
             justify-content: space-around;
             width: 100%;
-            background-color: #1f1c30;
+            background-color: var(--tg-theme-secondary-bg-color);
             padding: 10px 0;
         }
         #bottomMenu button {
             background-color: transparent;
             border: none;
-            color: red;
+            color: var(--tg-theme-text-color);
             padding: 10px 20px;
             text-align: center;
             text-decoration: none;
@@ -143,14 +143,14 @@
             border-radius: 5px;
         }
         #bottomMenu button.active {
-            background-color: #3a3559;
+            background-color: var(--tg-theme-button-color);
         }
         .points-animation {
             position: absolute;
             font-size: 36px;
             color: #FFD700;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             opacity: 0;
             animation: pointsAnimation 1s ease-out;
         }
@@ -165,9 +165,9 @@
             padding: 10px;
         }
         .booster-button {
-            background-color: #4CAF50;
+            background-color: var(--tg-theme-button-color);
             border: none;
-            color: white;
+            color: var(--tg-theme-button-text-color);
             padding: 10px 20px;
             text-align: center;
             text-decoration: none;
@@ -177,25 +177,25 @@
             cursor: pointer;
             border-radius: 5px;
             transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(255,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         .booster-button:hover {
-            background-color: #45a049;
+            background-color: var(--tg-theme-secondary-bg-color);
             transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(255,0,0,0.3);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
         }
         .booster-button:active {
             transform: translateY(1px);
-            box-shadow: 0 3px 10px rgba(255,0,0,0.2);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
         }
         .booster-button:disabled {
             background-color: #cccccc;
             color: #666666;
             cursor: not-allowed;
         }
-        .booster-uses {
-            font-size: 14px;
-            margin-top: 5px;
+         .booster-uses {
+            font-size: 14px
+                        margin-top: 5px;
         }
     </style>
 </head>
@@ -276,11 +276,15 @@
                 tgWebApp.showAlert('Ошибка загрузки данных. Пожалуйста, попробуйте снова.');
             } else if (result) {
                 const storedData = JSON.parse(result);
-                stars = storedData.stars || 0;
-                tappingPoints = storedData.tappingPoints || maxTappingPoints;
-                tappingGuruUses = storedData.tappingGuruUses || 3;
-                fullTankUses = storedData.fullTankUses || 3;
-                lastSaveTime = storedData.lastSaveTime || Date.now();
+                if (storedData.version === dataVersion) {
+                    stars = storedData.stars || 0;
+                    tappingPoints = storedData.tappingPoints || maxTappingPoints;
+                    tappingGuruUses = storedData.tappingGuruUses || 3;
+                    fullTankUses = storedData.fullTankUses || 3;
+                    lastSaveTime = storedData.lastSaveTime || Date.now();
+                } else {
+                    initializeUserData();
+                }
             } else {
                 initializeUserData();
             }
@@ -288,42 +292,12 @@
         });
     }
 
-function saveUserData(data) {
-    data.version = dataVersion;
-    saveQueue.push(data);
-    processSaveQueue();
-    localStorage.setItem(`user_${userId}_data`, JSON.stringify(data));
-}
-
-function loadUserData() {
-    tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
-        let data;
-        if (error || !result) {
-            console.error('Error loading user data from CloudStorage:', error);
-            const localData = localStorage.getItem(`user_${userId}_data`);
-            if (localData) {
-                data = JSON.parse(localData);
-            }
-        } else {
-            data = JSON.parse(result);
-        }
-        
-        if (data && data.version === dataVersion) {
-            applyUserData(data);
-        } else {
-            initializeUserData();
-        }
-        updateUI();
-    });
-}
-
-function applyUserData(data) {
-    stars = data.stars || 0;
-    tappingPoints = data.tappingPoints || maxTappingPoints;
-    tappingGuruUses = data.tappingGuruUses || 3;
-    fullTankUses = data.fullTankUses || 3;
-    lastSaveTime = data.lastSaveTime || Date.now();
-}
+    function saveUserData(data) {
+        data.version = dataVersion;
+        saveQueue.push(data);
+        processSaveQueue();
+        localStorage.setItem(`user_${userId}_data`, JSON.stringify(data));
+    }
 
     function processSaveQueue() {
         if (saveQueue.length === 0) return;
@@ -342,47 +316,6 @@ function applyUserData(data) {
             }
         });
     }
-    function saveUserData(data) {
-    saveQueue.push(data);
-    processSaveQueue();
-    // Backup to local storage
-    localStorage.setItem(`user_${userId}_data`, JSON.stringify(data));
-}
-    function retryFailedSaves() {
-    if (saveQueue.length > 0) {
-        console.log('Retrying failed saves...');
-        processSaveQueue();
-    }
-}
-
-// Call this at the end of the script
-setInterval(retryFailedSaves, 60000); // Retry every minute
-
-function loadUserData() {
-    tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
-        if (error || !result) {
-            console.error('Error loading user data from CloudStorage:', error);
-            // Try to load from local storage
-            const localData = localStorage.getItem(`user_${userId}_data`);
-            if (localData) {
-                applyUserData(JSON.parse(localData));
-            } else {
-                initializeUserData();
-            }
-        } else {
-            applyUserData(JSON.parse(result));
-        }
-        updateUI();
-    });
-}
-
-function applyUserData(data) {
-    stars = data.stars || 0;
-    tappingPoints = data.tappingPoints || maxTappingPoints;
-    tappingGuruUses = data.tappingGuruUses || 3;
-    fullTankUses = data.fullTankUses || 3;
-    lastSaveTime = data.lastSaveTime || Date.now();
-}
 
     function initializeUserData() {
         stars = 0;
@@ -401,34 +334,21 @@ function applyUserData(data) {
         updateBoosterButtonStates();
     }
 
-   let lastSaveTime = 0;
-const SAVE_COOLDOWN = 5000; // 5 seconds
-
-function updateStars(amount) {
-    stars += amount;
-    updateUI();
-    
-    const now = Date.now();
-    if (now - lastSaveTime > SAVE_COOLDOWN) {
-        saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: now});
-        lastSaveTime = now;
-    }
-}
-
     coinElement.addEventListener('click', (event) => {
         if (tappingPoints > 0) {
             const earnedPoints = tappingMultiplier;
-            updateStars(earnedPoints);
+            stars += earnedPoints;
             tappingPoints--;
             updateUI();
+            saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
 
             tgWebApp.HapticFeedback.impactOccurred('medium');
 
             const pointsElement = document.createElement('div');
             pointsElement.textContent = `+${earnedPoints} ⭐️`;
             pointsElement.className = 'points-animation';
-            pointsElement.style.left = `${event.clientX - coinElement.offsetLeft}px`;
-            pointsElement.style.top = `${event.clientY - coinElement.offsetTop}px`;
+            pointsElement.style.left = `${
+                        pointsElement.style.top = `${event.clientY - coinElement.offsetTop}px`;
             coinElement.appendChild(pointsElement);
             setTimeout(() => {
                 pointsElement.remove();
@@ -536,6 +456,6 @@ function updateStars(amount) {
 
     authenticateUser();
 </script>
-
 </body>
 </html>
+

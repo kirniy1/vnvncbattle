@@ -2,200 +2,114 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VNVNC COIN BATTLE</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNVNC Coin Battle</title>
     <style>
+        /* Add some basic styling to make the app look better */
         body {
-            font-family: 'Roboto', Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
-            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
         }
         #gameContainer {
-            display: flex;
-            flex-direction: column;
-            height: calc(100% - 50px);
-            justify-content: space-between;
-            padding: 10px;
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         #header {
-            margin-bottom: 10px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
         }
-        .framed {
-            border: 2px solid var(--tg-theme-button-color);
-            border-radius: 10px;
-            padding: 5px;
-            margin-bottom: 5px;
-        }
-        h1 {
-            font-size: 24px;
+        #header h1 {
             margin: 0;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         #instructions {
-            font-size: 14px;
-            margin-top: 5px;
-            background-color: var(--tg-theme-secondary-bg-color);
-            padding: 5px;
-            border-radius: 5px;
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
         }
         #stars {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: bold;
-            margin: 0;
+            color: #ff69b4;
         }
         #coin {
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle at 30% 30%, #ffd700, #ffb700);
+            width: 100px;
+            height: 100px;
+            background-color: #ff69b4;
             border-radius: 50%;
-            margin: 10px auto;
+            margin: 20px auto;
             cursor: pointer;
-            user-select: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            color: #2b2640;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            box-shadow: 
-                0 10px 20px rgba(0, 0, 0, 0.4), 
-                0 5px 10px rgba(0, 0, 0, 0.3),
-                inset 0 -10px 10px -5px rgba(0, 0, 0, 0.5),
-                inset 0 10px 10px -5px rgba(255, 255, 255, 0.5);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.1s;
         }
-        #coin::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.1) 50%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-        @keyframes shine {
-            0% { transform: translateY(-100%) rotate(45deg); }
-            100% { transform: translateY(100%) rotate(45deg); }
-        }
-        #coin:active {
-            transform: perspective(500px) rotateX(10deg);
+        #footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
         }
         #progressBarContainer {
-            width: 100%;
-            margin-bottom: 5px;
+            margin-top: 20px;
         }
         #progressBar {
             width: 100%;
             height: 20px;
-            background-color: var(--tg-theme-secondary-bg-color);
+            background-color: #ddd;
             border-radius: 10px;
-            overflow: hidden;
         }
         #progress {
-            width: 0%;
-            height: 100%;
-            background-color: var(--tg-theme-button-color);
-            transition: width 0.5s;
+            width: 0;
+            height: 20px;
+            background-color: #ff69b4;
+            border-radius: 10px;
         }
         #tappingPoints {
-            margin-top: 5px;
-            font-size: 14px;
-        }
-        #bottomMenu {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            background-color: var(--tg-theme-secondary-bg-color);
-            padding: 10px 0;
-        }
-        #bottomMenu button {
-            background-color: transparent;
-            border: none;
-            color: var(--tg-theme-text-color);
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
             font-size: 16px;
-            margin: 0;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            border-radius: 5px;
-        }
-        #bottomMenu button.active {
-            background-color: var(--tg-theme-button-color);
-        }
-        .points-animation {
-            position: absolute;
-            font-size: 36px;
-            color: #FFD700;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            animation: pointsAnimation 1s ease-out;
-        }
-        @keyframes pointsAnimation {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
+            color: #666;
+            margin-top: 10px;
         }
         #boosterPage {
             display: none;
-            height: calc(100% - 50px);
-            overflow-y: auto;
-            padding: 10px;
         }
-        .booster-button {
-            background-color: var(--tg-theme-button-color);
-            border: none;
-            color: var(--tg-theme-button-text-color);
+        #boosterPage h2 {
+            margin-top: 0;
+        }
+       .booster-button {
+            background-color: #4CAF50;
+            color: #fff;
             padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 5px 2px;
+            border: none;
+            border-radius: 10px;
             cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
-        .booster-button:hover {
-            background-color: var(--tg-theme-secondary-bg-color);
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
+       .booster-button:hover {
+            background-color: #3e8e41;
         }
-        .booster-button:active {
-            transform: translateY(1px);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+       .booster-uses {
+            font-size: 16px;
+            color: #666;
+            margin-top: 10px;
         }
-        .booster-button:disabled {
-            background-color: #cccccc;
-            color: #666666;
-            cursor: not-allowed;
+        #bottomMenu {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
         }
-         .booster-uses {
-            font-size: 14px
-                        margin-top: 5px;
+        #bottomMenu button {
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #bottomMenu button.active {
+            background-color: #3e8e41;
         }
     </style>
 </head>
@@ -221,241 +135,124 @@
     <div id="boosterPage">
         <h2>Бустеры</h2>
         <p class="stars-display">0 ⭐️</p>
-        <button id="tappingGuru" class="booster-button">Гуру нажатий (2x на 5 мин)</button>
-        <p id="tappingGuruUses" class="booster-uses">Осталось: 3</p>
-        <button id="fullTank" class="booster-button">Полный бак</button>
-        <p id="fullTankUses" class="booster-uses">Осталось: 3</p>
-        <button id="multitap" class="booster-button">Мультинажатие (5x на 3 ч) - 500 ⭐️</button>
-        <button id="rechargingSpeed" class="booster-button">Скорость зарядки (3x на 3 ч) - 2000 ⭐️</button>
+        <button class="booster-button" id="tappingGuru">Гуру нажатий (2x на 5 мин)</button>
+        <p class="booster-uses" id="tappingGuruUses">Осталось: 3</p>
+             <button class="booster-button" id="fullTank">Полный бак</button>
+        <p class="booster-uses" id="fullTankUses">Осталось: 3</p>
+        <button class="booster-button" id="multitap">Мультинажатие (5x на 3 ч) - 500 ⭐️</button>
+        <button class="booster-button" id="rechargingSpeed">Скорость зарядки (3x на 3 ч) - 2000 ⭐️</button>
     </div>
     <div id="bottomMenu">
-        <button id="tappingPageBtn" class="active">Нажатия</button>
+        <button class="active" id="tappingPageBtn">Нажатия</button>
         <button id="boosterPageBtn">Бустеры</button>
     </div>
-<script>
-    const tgWebApp = window.Telegram.WebApp;
-    let userId;
-    let stars = 0;
-    let tappingPoints = 2000;
-    const maxTappingPoints = 2000;
-    let tappingMultiplier = 1;
-    let rechargeMultiplier = 1;
-    let tappingGuruUses = 3;
-    let fullTankUses = 3;
-    let lastSaveTime = Date.now();
-    let saveQueue = [];
 
-    const starsElements = document.querySelectorAll('#stars, .stars-display');
-    const tappingPointsElement = document.getElementById('tappingPoints');
-    const progressElement = document.getElementById('progress');
-    const coinElement = document.getElementById('coin');
-    const tappingPageElement = document.getElementById('gameContainer');
-    const boosterPageElement = document.getElementById('boosterPage');
-    const tappingGuruButton = document.getElementById('tappingGuru');
-    const fullTankButton = document.getElementById('fullTank');
-    const tappingGuruUsesElement = document.getElementById('tappingGuruUses');
-    const fullTankUsesElement = document.getElementById('fullTankUses');
-    let dataVersion = 1; // Increment this when you make changes to the data structure
+    <script>
+        // Add event listeners to the coin and booster buttons
+        document.getElementById('coin').addEventListener('click', earnStars);
+        document.getElementById('tappingGuru').addEventListener('click', useTappingGuru);
+        document.getElementById('fullTank').addEventListener('click', useFullTank);
+        document.getElementById('multitap').addEventListener('click', useMultitap);
+        document.getElementById('rechargingSpeed').addEventListener('click', useRechargingSpeed);
 
-    tgWebApp.ready();
+        // Initialize the score and progress bar
+        let stars = 0;
+        let progressBarWidth = 0;
+        let tappingPoints = 2000;
 
-    function authenticateUser() {
-        if (tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
-            userId = tgWebApp.initDataUnsafe.user.id;
-            loadUserData();
-        } else {
-            console.error('User authentication failed');
-            tgWebApp.showAlert('Ошибка аутентификации. Пожалуйста, попробуйте снова позже.');
-        }
-    }
+        // Save the score to local storage every 10 seconds
+        setInterval(saveScore, 10000);
 
-    function loadUserData() {
-        tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
-            if (error) {
-                console.error('Error loading user data:', error);
-                tgWebApp.showAlert('Ошибка загрузки данных. Пожалуйста, попробуйте снова.');
-            } else if (result) {
-                const storedData = JSON.parse(result);
-                if (storedData.version === dataVersion) {
-                    stars = storedData.stars || 0;
-                    tappingPoints = storedData.tappingPoints || maxTappingPoints;
-                    tappingGuruUses = storedData.tappingGuruUses || 3;
-                    fullTankUses = storedData.fullTankUses || 3;
-                    lastSaveTime = storedData.lastSaveTime || Date.now();
-                } else {
-                    initializeUserData();
-                }
-            } else {
-                initializeUserData();
+        // Load the score from local storage
+        loadScore();
+
+        // Function to earn stars when the coin is clicked
+        function earnStars() {
+            stars += 1;
+            document.getElementById('stars').innerHTML = stars + '️';
+            progressBarWidth += (100 / tappingPoints);
+            document.getElementById('progress').style.width = progressBarWidth + '%';
+            if (progressBarWidth >= 100) {
+                tappingPoints = 2000;
+                progressBarWidth = 0;
+                document.getElementById('progress').style.width = '0%';
             }
-            updateUI();
-        });
-    }
+        }
 
-    function saveUserData(data) {
-        data.version = dataVersion;
-        saveQueue.push(data);
-        processSaveQueue();
-        localStorage.setItem(`user_${userId}_data`, JSON.stringify(data));
-    }
-
-    function processSaveQueue() {
-        if (saveQueue.length === 0) return;
-
-        const dataToSave = saveQueue.shift();
-        tgWebApp.CloudStorage.setItem(`user_${userId}_data`, JSON.stringify(dataToSave), (error) => {
-            if (error) {
-                console.error('Error saving user data:', error);
-                saveQueue.unshift(dataToSave); // Put the data back in the queue
-                setTimeout(processSaveQueue, 1000); // Try again after 1 second
-            } else {
-                console.log('User data saved successfully');
-                if (saveQueue.length > 0) {
-                    processSaveQueue(); // Process next item in queue
-                }
+        // Function to use the tapping guru booster
+        function useTappingGuru() {
+            let uses = parseInt(document.getElementById('tappingGuruUses').innerHTML.split(':')[1].trim());
+            if (uses > 0) {
+                uses -= 1;
+                document.getElementById('tappingGuruUses').innerHTML = 'Осталось: ' uses;
+                // Apply the booster effect (2x stars for 5 minutes)
+                setTimeout(function() {
+                    stars *= 2;
+                    document.getElementById('stars').innerHTML = stars + '️';
+                }, 300000); // 5 minutes
             }
-        });
-    }
-
-    function initializeUserData() {
-        stars = 0;
-        tappingPoints = maxTappingPoints;
-        tappingGuruUses = 3;
-        fullTankUses = 3;
-        saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-    }
-
-    function updateUI() {
-        starsElements.forEach(el => el.textContent = `${stars} ⭐️`);
-        tappingPointsElement.textContent = `${tappingPoints}/${maxTappingPoints} ⭐️ available`;
-        progressElement.style.width = `${(tappingPoints / maxTappingPoints) * 100}%`;
-        tappingGuruUsesElement.textContent = `Осталось: ${tappingGuruUses}`;
-        fullTankUsesElement.textContent = `Осталось: ${fullTankUses}`;
-        updateBoosterButtonStates();
-    }
-
-    coinElement.addEventListener('click', (event) => {
-        if (tappingPoints > 0) {
-            const earnedPoints = tappingMultiplier;
-            stars += earnedPoints;
-            tappingPoints--;
-            updateUI();
-            saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-
-            tgWebApp.HapticFeedback.impactOccurred('medium');
-
-            const pointsElement = document.createElement('div');
-            pointsElement.textContent = `+${earnedPoints} ⭐️`;
-            pointsElement.className = 'points-animation';
-            pointsElement.style.left = `${
-                        pointsElement.style.top = `${event.clientY - coinElement.offsetTop}px`;
-            coinElement.appendChild(pointsElement);
-            setTimeout(() => {
-                pointsElement.remove();
-            }, 1000);
-        } else {
-            tgWebApp.HapticFeedback.notificationOccurred('error');
-            tgWebApp.showAlert('Нет энергии! Подождите, пока она восстановится, или используйте бустер.');
         }
-    });
 
-    setInterval(() => {
-        if (tappingPoints < maxTappingPoints) {
-            tappingPoints += rechargeMultiplier;
-            if (tappingPoints > maxTappingPoints) {
-                tappingPoints = maxTappingPoints;
+        // Function to use the full tank booster
+        function useFullTank() {
+            let uses = parseInt(document.getElementById('fullTankUses').innerHTML.split(':')[1].trim());
+            if (uses > 0) {
+                uses -= 1;
+                document.getElementById('fullTankUses').innerHTML = 'Осталось: ' uses;
+                // Apply the booster effect (full tank)
+                tappingPoints = 2000;
+                progressBarWidth = 0;
+                document.getElementById('progress').style.width = '0%';
             }
-            updateUI();
-            saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
         }
-    }, 1000);
 
-    function updateBoosterButtonStates() {
-        tappingGuruButton.disabled = tappingGuruUses === 0;
-        fullTankButton.disabled = fullTankUses === 0;
-    }
-
-    tappingGuruButton.addEventListener('click', () => {
-        if (tappingGuruUses > 0) {
-            tappingMultiplier = 2;
-            tappingGuruUses--;
-            updateUI();
-            saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-            setTimeout(() => {
-                tappingMultiplier = 1;
-                updateUI();
-                saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-            }, 5 * 60 * 1000);
-            tgWebApp.HapticFeedback.notificationOccurred('success');
-            tgWebApp.showAlert('Гуру нажатий активирован на 5 минут!');
+        // Function to use the multitap booster
+        function useMultitap() {
+            if (stars >= 500) {
+                stars -= 500;
+                document.getElementById('stars').innerHTML = stars + '️';
+                // Apply the booster effect (5x stars for 3 hours)
+                setTimeout(function() {
+                    stars *= 5;
+                    document.getElementById('stars').innerHTML = stars + '️';
+                }, 10800000); // 3 hours
+            }
         }
-    });
 
-    fullTankButton.addEventListener('click', () => {
-        if (fullTankUses > 0) {
-            tappingPoints = maxTappingPoints;
-            fullTankUses--;
-            updateUI();
-            saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-            tgWebApp.HapticFeedback.notificationOccurred('success');
-            tgWebApp.showAlert('Полный бак активирован!');
+        // Function to use the recharging speed booster
+        function useRechargingSpeed() {
+            if (stars >= 2000) {
+                stars -= 2000;
+                document.getElementById('stars').innerHTML = stars + '️';
+                // Apply the booster effect (3x recharging speed for 3 hours)
+                setTimeout(function() {
+                    tappingPoints = 6000;
+                    progressBarWidth = 0;
+                    document.getElementById('progress').style.width = '0%';
+                }, 10800000); // 3 hours
+            }
         }
-    });
 
-    document.getElementById('multitap').addEventListener('click', () => {
-        if (stars >= 500) {
-            stars -= 500;
-            tappingMultiplier = 5;
-            updateUI();
-            saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-            setTimeout(() => {
-                tappingMultiplier = 1;
-                updateUI();
-                saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-            }, 3 * 60 * 60 * 1000);
-            tgWebApp.HapticFeedback.notificationOccurred('success');
-            tgWebApp.showAlert('Мультинажатие активировано на 3 часа!');
-        } else {
-            tgWebApp.HapticFeedback.notificationOccurred('error');
-            tgWebApp.showAlert('Недостаточно ⭐️ для активации Мультинажатия!');
+        // Function to save the score to local storage
+        function saveScore() {
+            localStorage.setItem('stars', stars);
+            localStorage.setItem('progressBarWidth', progressBarWidth);
+            localStorage.setItem('tappingPoints', tappingPoints);
         }
-    });
 
-    document.getElementById('rechargingSpeed').addEventListener('click', () => {
-        if (stars >= 2000) {
-            stars -= 2000;
-            rechargeMultiplier = 3;
-            updateUI();
-            saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-            setTimeout(() => {
-                rechargeMultiplier = 1;
-                updateUI();
-                saveUserData({stars, tappingPoints, tappingGuruUses, fullTankUses, lastSaveTime: Date.now()});
-            }, 3 * 60 * 60 * 1000);
-            tgWebApp.HapticFeedback.notificationOccurred('success');
-            tgWebApp.showAlert('Скорость зарядки увеличена на 3 часа!');
-        } else {
-            tgWebApp.HapticFeedback.notificationOccurred('error');
-            tgWebApp.showAlert('Недостаточно ⭐️ для увеличения Скорости зарядки!');
+        // Function to load the score from local storage
+        function loadScore() {
+            stars = parseInt(localStorage.getItem('stars')) || 0;
+            progressBarWidth = parseInt(localStorage.getItem('progressBarWidth')) || 0;
+            tappingPoints = parseInt(localStorage.getItem('tappingPoints'))
+ // Function to load the score from local storage
+        function loadScore() {
+            stars = parseInt(localStorage.getItem('stars')) || 0;
+            progressBarWidth = parseInt(localStorage.getItem('progressBarWidth')) || 0;
+            tappingPoints = parseInt(localStorage.getItem('tappingPoints')) || 2000;
+            document.getElementById('stars').innerHTML = stars + '️';
+            document.getElementById('progress').style.width = progressBarWidth + '%';
         }
-    });
-
-    document.getElementById('tappingPageBtn').addEventListener('click', () => {
-        tappingPageElement.style.display = 'flex';
-        boosterPageElement.style.display = 'none';
-        document.getElementById('tappingPageBtn').classList.add('active');
-        document.getElementById('boosterPageBtn').classList.remove('active');
-    });
-
-    document.getElementById('boosterPageBtn').addEventListener('click', () => {
-        tappingPageElement.style.display = 'none';
-        boosterPageElement.style.display = 'block';
-        document.getElementById('tappingPageBtn').classList.remove('active');
-        document.getElementById('boosterPageBtn').classList.add('active');
-    });
-
-    authenticateUser();
-</script>
+    </script>
 </body>
 </html>
-

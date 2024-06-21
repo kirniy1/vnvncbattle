@@ -1,4 +1,6 @@
 require('dotenv').config();
+const MongoClient = require('mongodb').MongoClient;
+require('dotenv').config();
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');

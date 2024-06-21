@@ -13,9 +13,10 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Deploy to DigitalOcean
-      uses: inspire-labs-tms-tech/digital-ocean-deploy-action@v2.0.2
+      uses: digitalocean/app_action@v2.1.0
       with:
         app_name: vnvnc-coin-tapper
+        region: nyc
         token: ${{ secrets.DO_TOKEN }}
         env: |
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_URI=${{ secrets.MONGODB_URI }}

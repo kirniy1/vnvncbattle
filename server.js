@@ -1,8 +1,6 @@
 require('dotenv').config();
-const MongoClient = require('mongodb').MongoClient;
-require('dotenv').config();
 const express = require('express');
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
 const cors = require('cors');
 
 const app = express();
@@ -16,14 +14,17 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 let database;
 
-client.connect(err => {
-  if (err) {
+async function connectToDatabase() {
+  try {
+    await client.connect();
+    database = client.db('vnvnc_coin_tapper');
+    console.log('Connected to MongoDB');
+  } catch (err) {
     console.error('Failed to connect to MongoDB', err);
-    return;
   }
-  database = client.db('vnvnc_coin_tapper');
-  console.log('Connected to MongoDB');
-});
+}
+
+connectToDatabase();
 
 app.get('/api/user/:telegramId', async (req, res) => {
   try {

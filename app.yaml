@@ -1,10 +1,22 @@
-name: vnvnc-coin-tapper
-region: nyc
-services:
-  - name: web
-    github:
-      repo: kirniy1/vnvncbattle
-      branch: main
-    envs:
-      - key: MONGODB_URI
-        value: mongodb+srv://kirlichps3:wYRks8y0VujfdQ8G@cluster0.mongodb.net/vnvnc_coin_tapper?retryWrites=true&w=majority
+name: Deploy to DigitalOcean App Platform
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to DigitalOcean
+      uses: inspire-labs-tms-tech/digital-ocean-deploy-action@v2.0.2
+      with:
+        app_name: vnvnc-coin-tapper
+        token: dop_v1_6713a6bf4784d99c6ba969df8ffeb0a4fd8a4d51f7efcd73778e83eb19990751
+        env:
+          - key: MONGODB_URI
+            value: mongodb+srv://kirlichps3:wYRks8y0VujfdQ8G@cluster0.mongodb.net/vnvnc_coin_tapper?retryWrites=true&w=majority

@@ -1,14 +1,22 @@
 name: Deploy to DigitalOcean App Platform
+
 on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      - uses: digitalocean/app_action@v2
-        with:
-          app_name: vnvnc-coin-tapper
-          token: ${{ secrets.dop_v1_84cf87601d71c7c1be12f432b76f414de56e813b838cc0c59365cb3d16b5b134 }}
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to DigitalOcean
+      uses: inspire-labs-tms-tech/digital-ocean-deploy-action@v2.0.2
+      with:
+        app_name: vnvnc-coin-tapper
+        token: ${{ secrets.DO_TOKEN }}
+        env:
+          - key: MONGODB_URI
+            value: ${{ secrets.MONGODB_URI }}

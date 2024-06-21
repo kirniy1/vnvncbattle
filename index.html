@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,6 +27,7 @@
             font-size: 24px;
             color: white;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            position: relative;
         }
         #progressBar {
             width: 100%;
@@ -70,37 +71,59 @@
         .coin-animation {
             animation: coinTap 0.2s ease-in-out;
         }
+        .points-animation {
+            position: absolute;
+            font-size: 24px;
+            color: red;
+            font-weight: bold;
+            opacity: 0;
+            animation: pointsAnimation 1s ease-out;
+        }
 
         @keyframes coinTap {
             0% {
-                transform: scale(1);
+                transform: rotate(0deg);
             }
-            50% {
-                transform: scale(0.9);
+            25% {
+                transform: rotate(15deg);
+            }
+            75% {
+                transform: rotate(-15deg);
             }
             100% {
-                transform: scale(1);
+                transform: rotate(0deg);
+            }
+        }
+
+        @keyframes pointsAnimation {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
             }
         }
     </style>
 </head>
 <body>
     <div id="tappingPage">
-        <p>Stars: <span id="stars">0</span></p>
+        <p>Звезды: <span id="stars">0</span></p>
         <div id="progressBar"><div id="progress"></div></div>
-        <p>Tapping Points: <span id="tappingPoints">2000</span> / 2000</p>
-        <div id="coin">Tap Me!</div>
+        <p>Очки нажатия: <span id="tappingPoints">2000</span> / 2000</p>
+        <div id="coin">Нажми меня!</div>
     </div>
     <div id="boosterPage" style="display:none;">
-        <h2>Boosters</h2>
-        <button id="tappingGuru">Tapping Guru (2x for 5min)</button>
-        <button id="fullTank">Full Tank</button>
-        <button id="multitap">Multitap (5x for 3h) - 500 stars</button>
-        <button id="rechargingSpeed">Recharging Speed (3x for 3h) - 2000 stars</button>
+        <h2>Бустеры</h2>
+        <button id="tappingGuru">Гуру нажатий (2x на 5 мин)</button>
+        <button id="fullTank">Полный бак</button>
+        <button id="multitap">Мультинажатие (5x на 3 ч) - 500 звезд</button>
+        <button id="rechargingSpeed">Скорость зарядки (3x на 3 ч) - 2000 звезд</button>
     </div>
     <div id="bottomMenu">
-        <button id="tappingPageBtn">Tapping</button>
-        <button id="boosterPageBtn">Boosters</button>
+        <button id="tappingPageBtn">Нажатия</button>
+        <button id="boosterPageBtn">Бустеры</button>
     </div>
 
     <script>

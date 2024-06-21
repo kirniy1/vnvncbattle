@@ -229,6 +229,26 @@ async function loadScore() {
         showError('Failed to load score. Please try again.');
     }
 }
+    async function saveScore() {
+    try {
+        const response = await fetch(`${serverUrl}/score/${tg.initDataUnsafe.user.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ score: score })
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message}`);
+        }
+        const data = await response.json();
+        console.log('Score saved successfully:', data);
+    } catch (error) {
+        console.error('Failed to save score:', error);
+        showError(`Failed to save score: ${error.message}`);
+    }
+}
 
 async function saveScore() {
     try {

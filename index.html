@@ -14,19 +14,25 @@
             background-color: #f0f0f0;
         }
         #coin {
-            width: 100px;
-            height: 100px;
+            width: 200px;
+            height: 200px;
             background-color: gold;
             border-radius: 50%;
             margin: 20px auto;
             cursor: pointer;
             user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         #progressBar {
             width: 100%;
             height: 20px;
             background-color: #ddd;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         #progress {
             width: 0%;
@@ -34,10 +40,12 @@
             background-color: #4CAF50;
             transition: width 0.5s;
         }
-        button {
-            margin: 5px;
-            padding: 10px;
-            font-size: 16px;
+        #tappingPage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 100px);
         }
         #bottomMenu {
             position: fixed;
@@ -59,7 +67,7 @@
             margin: 4px 2px;
             cursor: pointer;
         }
-       .coin-animation {
+        .coin-animation {
             animation: coinTap 0.2s ease-in-out;
         }
 
@@ -78,11 +86,10 @@
 </head>
 <body>
     <div id="tappingPage">
-        <h1>VNVNC Concert Hall Coin Tapper</h1>
         <p>Stars: <span id="stars">0</span></p>
         <div id="progressBar"><div id="progress"></div></div>
         <p>Tapping Points: <span id="tappingPoints">2000</span> / 2000</p>
-        <div id="coin"></div>
+        <div id="coin">Tap Me!</div>
     </div>
     <div id="boosterPage" style="display:none;">
         <h2>Boosters</h2>

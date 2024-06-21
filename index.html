@@ -6,121 +6,48 @@
     <title>VNVNC Concert Hall Coin Tapper</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
+        body {
             font-family: Arial, sans-serif;
-            background-color: black;
-            color: white;
-        }
-        #game-container {
-            position: relative;
-            width: 100%;
-            height: calc(100% - 50px);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            overflow-y: auto;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
         }
         #coin {
-            width: 80vw;
-            height: 80vw;
-            max-width: 300px;
-            max-height: 300px;
+            width: 100px;
+            height: 100px;
             background-color: gold;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 20px auto;
             cursor: pointer;
             user-select: none;
-            transition: transform 0.1s;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
         }
-        #coin img {
-            width: 80%;
-            height: 80%;
-            object-fit: contain;
-        }
-        #score-container {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 36px;
-            font-weight: bold;
-            background-color: rgba(255, 0, 0, 0.7);
-            border-radius: 15px;
-            border: 2px solid red;
-        }
-        .point-popup {
-            position: fixed;
-            font-size: 24px;
-            color: red;
-            pointer-events: none;
-            opacity: 1;
-            transition: opacity 0.5s, transform 0.5s;
-        }
-        #progress-container {
-            width: 80%;
-            margin-top: 20px;
-            text-align: center;
-        }
-        #progress-bar {
+        #progressBar {
             width: 100%;
             height: 20px;
-            background-color: #333;
-            border-radius: 10px;
-            overflow: hidden;
+            background-color: #ddd;
+            margin-bottom: 20px;
         }
         #progress {
-            width: 100%;
+            width: 0%;
             height: 100%;
             background-color: #4CAF50;
             transition: width 0.5s;
         }
-        #instructions {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 18px;
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
         }
-        #bottom-menu {
+        #bottomMenu {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 50px;
             background-color: #333;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1000;
+            padding: 10px 0;
         }
-        .menu-item {
-            color: white;
-            text-decoration: none;
-            font-size: 18px;
-        }
-        .page {
-            display: none;
-            padding: 20px;
-            height: calc(100% - 40px);
-            overflow-y: auto;
-            background-color: black;
-        }
-        .booster {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #222;
-            border-radius: 10px;
-        }
-        .booster button {
+        #bottomMenu button {
             background-color: #4CAF50;
             border: none;
             color: white;
@@ -131,290 +58,249 @@
             font-size: 16px;
             margin: 4px 2px;
             cursor: pointer;
-            border-radius: 5px;
         }
-        #error-message {
-            position: fixed;
-            bottom: 60px;
-            left: 10px;
-            color: red;
-            font-size: 16px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 1000;
+       .coin-animation {
+            animation: coinTap 0.2s ease-in-out;
+        }
+
+        @keyframes coinTap {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <div id="tap-page" class="page" style="display:block;">
-            <div id="score-container">SCORE: 0 ⭐️</div>
-            <div id="coin">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='20' fill='black'%3EVNVNC%3C/text%3E%3C/svg%3E" alt="VNVNC Logo">
-            </div>
-            <div id="progress-container">
-                <div id="progress-bar"><div id="progress"></div></div>
-                <div id="progress-text">2000/2000 ⭐️ available</div>
-            </div>
-            <div id="instructions">Tap the VNVNC coin to collect stars!</div>
-        </div>
-        <div id="boost-page" class="page">
-            <h2>Your daily boosters:</h2>
-            <div class="booster">
-                <p data-booster="tappingGuru">Tapping Guru 3/3 [x2 points per tap]</p>
-                <button onclick="activateBooster('tappingGuru')">Activate</button>
-            </div>
-            <div class="booster">
-                <p data-booster="fullTank">Full Tank 3/3 [instantly recharge the tank]</p>
-                <button onclick="activateBooster('fullTank')">Activate</button>
-            </div>
-            <h2>Boosters:</h2>
-            <div class="booster">
-                <p>Multitap 500 ⭐️ [allows multitap for 3 hours]</p>
-                <button onclick="purchaseBooster('multitap')">Purchase</button>
-            </div>
-            <div class="booster">
-                <p>Recharging Speed 2000 ⭐️ [3x recharging speed increase]</p>
-                <button onclick="purchaseBooster('rechargingSpeed')">Purchase</button>
-            </div>
-        </div>
+    <div id="tappingPage">
+        <h1>VNVNC Concert Hall Coin Tapper</h1>
+        <p>Stars: <span id="stars">0</span></p>
+        <div id="progressBar"><div id="progress"></div></div>
+        <p>Tapping Points: <span id="tappingPoints">2000</span> / 2000</p>
+        <div id="coin"></div>
     </div>
-    <div id="bottom-menu">
-        <a href="#" class="menu-item" onclick="showPage('tap-page')">Tap ⭐️</a>
-        <a href="#" class="menu-item" onclick="showPage('boost-page')">Boost 🚀</a>
+    <div id="boosterPage" style="display:none;">
+        <h2>Boosters</h2>
+        <button id="tappingGuru">Tapping Guru (2x for 5min)</button>
+        <button id="fullTank">Full Tank</button>
+        <button id="multitap">Multitap (5x for 3h) - 500 stars</button>
+        <button id="rechargingSpeed">Recharging Speed (3x for 3h) - 2000 stars</button>
     </div>
-    <div id="error-message"></div>
+    <div id="bottomMenu">
+        <button id="tappingPageBtn">Tapping</button>
+        <button id="boosterPageBtn">Boosters</button>
+    </div>
 
     <script>
-        console.log("Script started");
-        const tg = window.Telegram.WebApp;
-        let score = 0;
-        let pointsLimit = 2000;
-        let availablePoints = 2000;
-        let lastRefillTime = Date.now();
-              let isMultitapEnabled = false;
-        let rechargeMultiplier = 1;
-        let tappingMultiplier = 1;
-        const refillInterval = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+        const tgWebApp = window.Telegram.WebApp;
+        let userId;
+        let isFirstLaunch = true;
 
-        const boosters = {
-            tappingGuru: { uses: 3, active: false },
-            fullTank: { uses: 3, active: false }
-        };
-
-        function getUserId() {
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                return tg.initDataUnsafe.user.id.toString();
-            }
-            return 'unknown_user';
-        }
-
-        function showError(message) {
-            console.error(message);
-            const errorMessage = document.getElementById('error-message');
-            if (errorMessage) {
-                errorMessage.textContent = message;
-                setTimeout(() => {
-                    errorMessage.textContent = '';
-                }, 3000);
-            }
-        }
-
-        async function updateScore() {
-            const scoreContainer = document.getElementById('score-container');
-            if (scoreContainer) {
-                scoreContainer.textContent = `SCORE: ${score} ⭐️`;
-                try {
-                    await tg.CloudStorage.setItem(getUserId(), score.toString());
-                } catch (error) {
-                    console.error('Failed to save score:', error);
-                    showError('Failed to save score. Please try again.');
-                }
-            }
-        }
-
-        async function loadScore() {
-            try {
-                const savedScore = await tg.CloudStorage.getItem(getUserId());
-                if (savedScore !== null) {
-                    score = parseInt(savedScore, 10);
-                    updateScore();
-                }
-            } catch (error) {
-                console.error('Failed to load score:', error);
-                showError('Failed to load score. Starting from 0.');
-            }
-        }
-
-        function updateProgressBar() {
-            const progressBar = document.getElementById('progress');
-            const progressText = document.getElementById('progress-text');
-            if (progressBar && progressText) {
-                const percentage = (availablePoints / pointsLimit) * 100;
-                progressBar.style.width = `${percentage}%`;
-                progressText.textContent = `${availablePoints}/${pointsLimit} ⭐️ available`;
-            }
-        }
-
-        function createPointPopup(x, y, points) {
-            const popup = document.createElement('div');
-            popup.className = 'point-popup';
-            popup.textContent = `+${points} ⭐️`;
-            popup.style.left = `${x}px`;
-            popup.style.top = `${y}px`;
-            document.body.appendChild(popup);
-
-            setTimeout(() => {
-                popup.style.opacity = '0';
-                popup.style.transform = 'translateY(-50px) scale(1.5)';
-            }, 50);
-
-            setTimeout(() => {
-                document.body.removeChild(popup);
-            }, 500);
-        }
-
-        async function onCoinTap(event) {
-            console.log("Coin tapped");
-            if (availablePoints <= 0) return;
-
-            const basePoints = isMultitapEnabled ? 5 : 1;
-            const pointsToAdd = Math.min(basePoints * tappingMultiplier, availablePoints);
-            score += pointsToAdd;
-            availablePoints -= pointsToAdd;
-
-            await updateScore();
-            updateProgressBar();
-
-            const coin = document.getElementById('coin');
-            if (coin) {
-                coin.style.transform = 'translate(-50%, -50%) rotate(5deg)';
-                setTimeout(() => { 
-                    coin.style.transform = 'translate(-50%, -50%) rotate(0deg)';
-                }, 100);
-            }
-
-            createPointPopup(
-                event.touches ? event.touches[0].clientX : event.clientX,
-                event.touches ? event.touches[0].clientY : event.clientY,
-                pointsToAdd
-            );
-
-            tg.HapticFeedback.impactOccurred('light');
-        }
-
-        function refillPoints() {
-            const now = Date.now();
-            const timePassed = now - lastRefillTime;
-            const pointsToAdd = Math.floor((timePassed / refillInterval) * pointsLimit * rechargeMultiplier);
-            
-            availablePoints = Math.min(availablePoints + pointsToAdd, pointsLimit);
-            lastRefillTime = now;
-
-            updateProgressBar();
-        }
-
-        function showPage(pageId) {
-            console.log("Showing page:", pageId);
-            document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
-            const pageToShow = document.getElementById(pageId);
-            if (pageToShow) {
-                pageToShow.style.display = 'block';
-            } else {
-                console.error("Page not found:", pageId);
-            }
-        }
-
-        async function activateBooster(boosterType) {
-            console.log("Activating booster:", boosterType);
-            if (boosters[boosterType].uses > 0) {
-                boosters[boosterType].uses--;
-                boosters[boosterType].active = true;
-                
-                if (boosterType === 'tappingGuru') {
-                    tappingMultiplier = 2;
-                    setTimeout(() => {
-                        tappingMultiplier = 1;
-                        boosters[boosterType].active = false;
-                    }, 5 * 60 * 1000); // 5 minutes
-                    showError("Tapping Guru activated for 5 minutes!");
-                } else if (boosterType === 'fullTank') {
-                    availablePoints = pointsLimit;
-                    updateProgressBar();
-                    showError("Full Tank activated! Tank refilled.");
-                }
-                
-                updateBoosterDisplay(boosterType);
-                await updateScore(); // Save the updated state
-            } else {
-                showError(`No more ${boosterType} uses left!`);
-            }
-        }
-
-        function updateBoosterDisplay(boosterType) {
-            const boosterElement = document.querySelector(`.booster p[data-booster="${boosterType}"]`);
-            if (boosterElement) {
-                boosterElement.textContent = `${boosterType} ${boosters[boosterType].uses}/3 [${boosterType === 'tappingGuru' ? 'x2 points per tap' : 'instantly recharge the tank'}]`;
-            }
-        }
-
-        async function purchaseBooster(boosterType) {
-            console.log("Purchasing booster:", boosterType);
-            if (boosterType === 'multitap' && score >= 500) {
-                score -= 500;
-                isMultitapEnabled = true;
-                setTimeout(() => {
-                    isMultitapEnabled = false;
-                    showError("Multitap deactivated.");
-                }, 3 * 60 * 60 * 1000);
-                await updateScore();
-                showError("Multitap activated for 3 hours!");
-            } else if (boosterType === 'rechargingSpeed' && score >= 2000) {
-                score -= 2000;
-                rechargeMultiplier = 3;
-                setTimeout(() => {
-                    rechargeMultiplier = 1;
-                    showError("Recharging speed returned to normal.");
-                }, 3 * 60 * 60 * 1000);
-                await updateScore();
-                showError("Recharging speed increased for 3 hours!");
-            } else {
-                showError("Not enough stars to purchase this booster!");
-            }
-        }
-
-        function handleCoinTap(event) {
-            event.preventDefault(); // Prevent default touch behavior
-            onCoinTap(event);
-        }
-
-                async function initGame() {
-            console.log("Initializing game");
-            tg.expand();
-            const coin = document.getElementById('coin');
-            if (coin) {
-                coin.addEventListener('touchstart', handleCoinTap);
-                coin.addEventListener('click', handleCoinTap);
-            }
-            await loadScore(); // Load the saved score
-            setInterval(refillPoints, 60000); // Check for refill every minute
-            updateProgressBar();
-            tg.ready();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initGame().catch(error => {
-                console.error('Error initializing game:', error);
-                showError('Failed to initialize game. Please try again.');
+        // Function to show welcome popup
+        function showWelcomePopup() {
+            tgWebApp.showPopup({
+                title: 'Welcome to VNVNC Concert Hall Coin Tapper!',
+                message: 'Tap the coin to earn stars and unlock boosters. Your progress will be saved automatically.',
+                buttons: [{text: 'Start Tapping!', type: 'ok'}]
             });
+        }
+
+        let stars = 0;
+        let tappingPoints = 2000;
+        const maxTappingPoints = 2000;
+        let tappingMultiplier = 1;
+        let rechargeMultiplier = 1;
+        let tappingGuruUses = 3;
+        let fullTankUses = 3;
+        let lastSaveTime = Date.now();
+
+        const starsElement = document.getElementById('stars');
+        const tappingPointsElement = document.getElementById('tappingPoints');
+        const progressElement = document.getElementById('progress');
+        const coinElement = document.getElementById('coin');
+        const tappingPageElement = document.getElementById('tappingPage');
+        const boosterPageElement = document.getElementById('boosterPage');
+
+        // Initialize Telegram WebApp
+        tgWebApp.ready();
+
+        // Check if user data is available
+        if (tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
+            userId = tgWebApp.initDataUnsafe.user.id;
+            checkFirstLaunch();
+        } else {
+            console.error('User data not available');
+            tgWebApp.showAlert('Error: Unable to retrieve user data. Please try again later.');
+        }
+
+        function checkFirstLaunch() {
+            tgWebApp.CloudStorage.getItem(`user_${userId}_launched`, (error, result) => {
+                if (error || !result) {
+                    isFirstLaunch = true;
+                    showWelcomePopup();
+                    tgWebApp.CloudStorage.setItem(`user_${userId}_launched`, 'true');
+                } else {
+                    isFirstLaunch = false;
+                }
+                loadUserData(); // Load user data after checking first launch
+            });
+        }
+
+        // Load user data
+        function loadUserData() {
+            tgWebApp.CloudStorage.getItem(`user_${userId}_data`, (error, result) => {
+                if (error) {
+                    console.error('Error loading user data:', error);
+                } else if (result) {
+                    const userData = JSON.parse(result);
+                    stars = userData.stars || 0;
+                    tappingPoints = userData.tappingPoints || maxTappingPoints;
+                    tappingGuruUses = userData.tappingGuruUses || 3;
+                    fullTankUses = userData.fullTankUses || 3;
+                    lastSaveTime = userData.lastSaveTime || Date.now();
+                    updateUI();
+                }
+            });
+        }
+
+        // Save user data
+        function saveUserData() {
+            const userData = {
+                stars: stars,
+                tappingPoints: tappingPoints,
+                tappingGuruUses: tappingGuruUses,
+                fullTankUses: fullTankUses,
+                lastSaveTime: Date.now()
+            };
+            tgWebApp.CloudStorage.setItem(`user_${userId}_data`, JSON.stringify(userData), (error, result) => {
+                if (error) {
+                    console.error('Error saving user data:', error);
+                } else {
+                    console.log('User data saved successfully');
+                }
+            });
+        }
+
+        // Update UI
+        function updateUI() {
+            starsElement.textContent = stars;
+            tappingPointsElement.textContent = tappingPoints;
+            progressElement.style.width = `${(tappingPoints / maxTappingPoints) * 100}%`;
+        }
+
+      // Coin tapping
+        coinElement.addEventListener('click', () => {
+            if (tappingPoints > 0) {
+                stars += tappingMultiplier;
+                tappingPoints--;
+                updateUI();
+                saveUserData();
+
+                // Coin animation
+                coinElement.classList.add('coin-animation');
+                setTimeout(() => {
+                    coinElement.classList.remove('coin-animation');
+                }, 200);
+            }
         });
 
-        // Global error handler
-        window.onerror = function(message, source, lineno, colno, error) {
-            showError(`Error: ${message} (${source}:${lineno})`);
-            console.error(error);
-        };
-    </script>
-</body>
-</html>
+        // Recharge tapping points
+        setInterval(() => {
+            if (tappingPoints < maxTappingPoints) {
+tappingPoints += rechargeMultiplier;
+if (tappingPoints > maxTappingPoints) {
+tappingPoints = maxTappingPoints;
+}
+updateUI();
+saveUserData();
+}
+}, 1000); // Recharge every second
+
+    // Booster: Tapping Guru
+    document.getElementById('tappingGuru').addEventListener('click', () => {
+        if (tappingGuruUses > 0) {
+            tappingMultiplier = 2;
+            tappingGuruUses--;
+            setTimeout(() => {
+                tappingMultiplier = 1;
+            }, 5 * 60 * 1000); // 5 minutes
+            updateBoosterButtonStates();
+            window.Telegram.WebApp.showAlert('Tapping Guru activated for 5 minutes!');
+        } else {
+            window.Telegram.WebApp.showAlert('No more Tapping Guru uses left for today!');
+        }
+    });
+
+    // Booster: Full Tank
+    document.getElementById('fullTank').addEventListener('click', () => {
+        if (fullTankUses > 0) {
+            tappingPoints = maxTappingPoints;
+            fullTankUses--;
+            updateUI();
+            updateBoosterButtonStates();
+            window.Telegram.WebApp.showAlert('Full Tank activated!');
+        } else {
+            window.Telegram.WebApp.showAlert('No more Full Tank uses left for today!');
+        }
+    });
+
+    // Booster: Multitap
+    document.getElementById('multitap').addEventListener('click', () => {
+        if (stars >= 500) {
+            stars -= 500;
+            tappingMultiplier = 5;
+            setTimeout(() => {
+                tappingMultiplier = 1;
+            }, 3 * 60 * 60 * 1000); // 3 hours
+            updateUI();
+            saveUserData();
+            window.Telegram.WebApp.showAlert('Multitap activated for 3 hours!');
+        } else {
+            window.Telegram.WebApp.showAlert('Not enough stars to activate Multitap!');
+        }
+    });
+
+    // Booster: Recharging Speed
+    document.getElementById('rechargingSpeed').addEventListener('click', () => {
+        if (stars >= 2000) {
+            stars -= 2000;
+            rechargeMultiplier = 3;
+            setTimeout(() => {
+                rechargeMultiplier = 1;
+            }, 3 * 60 * 60 * 1000); // 3 hours
+            updateUI();
+            saveUserData();
+            window.Telegram.WebApp.showAlert('Recharging Speed increased for 3 hours!');
+        } else {
+            window.Telegram.WebApp.showAlert('Not enough stars to activate Recharging Speed!');
+        }
+    });
+
+    // Navigation
+    document.getElementById('tappingPageBtn').addEventListener('click', () => {
+        tappingPageElement.style.display = 'block';
+        boosterPageElement.style.display = 'none';
+    });
+
+    document.getElementById('boosterPageBtn').addEventListener('click', () => {
+        tappingPageElement.style.display = 'none';
+        boosterPageElement.style.display = 'block';
+        updateBoosterButtonStates();
+    });
+
+    // Update booster button states
+    function updateBoosterButtonStates() {
+        document.getElementById('tappingGuru').disabled = tappingGuruUses === 0;
+        document.getElementById('fullTank').disabled = fullTankUses === 0;
+    }
+
+    // Save data periodically
+    setInterval(saveUserData, 60000); // Save every minute
+</script>
+</body> 
+</html> 

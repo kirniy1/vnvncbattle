@@ -157,16 +157,46 @@
     const boosterPageElement = document.getElementById('boosterPage');
 
     // Initialize Telegram WebApp
-    tgWebApp.ready();
+        const tgWebApp = window.Telegram.WebApp;
+        tgWebApp.ready();
 
-    // Check if user data is available
-    if (tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
-        userId = tgWebApp.initDataUnsafe.user.id;
-        checkFirstLaunch();
-    } else {
-        console.error('User data not available');
-        tgWebApp.showAlert('Ошибка: Не удалось получить данные пользователя. Пожалуйста, попробуйте еще раз позже.');
-    }
+        // Verify the authentication data
+        const authData = tgWebApp.initData;
+        const authDataHash = tgWebApp.initDataUnsafe.hash;
+
+        // TODO: Verify the authData using the authDataHash on your server
+        // Send the authData and authDataHash to your server for verification
+        // Example server-side verification code (Node.js):
+        /*
+        const crypto = require('crypto');
+        const botToken = '7253153475:AAFYHcH9qmD-0m-t8nl-f71GbRpzbTDwdys';
+
+        function verifyAuthData(authData, authDataHash) {
+            const secretKey = crypto.createHash('sha256').update(botToken).digest();
+            const dataCheckString = Object.keys(authData)
+                .sort()
+                .map(key => `${key}=${authData[key]}`)
+                .join('\n');
+            const hmac = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+            return hmac === authDataHash;
+        }
+
+        // Usage:
+        if (verifyAuthData(authData, authDataHash)) {
+            // Authentication successful, proceed with the game logic
+        } else {
+            // Authentication failed, handle the error
+        }
+        */
+
+        // Check if user data is available
+        if (tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
+            userId = tgWebApp.initDataUnsafe.user.id;
+            checkFirstLaunch();
+        } else {
+            console.error('User data not available');
+            tgWebApp.showAlert('Ошибка: Не удалось получить данные пользователя. Пожалуйста, попробуйте еще раз позже.');
+        }
 
     function checkFirstLaunch() {
         tgWebApp.CloudStorage.getItem(`user_${userId}_launched`, (error, result) => {

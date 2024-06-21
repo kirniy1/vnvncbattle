@@ -17,6 +17,5 @@ jobs:
       with:
         app_name: vnvnc-coin-tapper
         token: ${{ secrets.DO_TOKEN }}
-        env:
-          - key: MONGODB_URI
-            value: ${{ secrets.MONGODB_URI }}
+        env: |
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}

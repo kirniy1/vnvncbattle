@@ -228,23 +228,22 @@
         });
     }
 
-    // Save user data
     function saveUserData() {
-        const userData = {
-            stars: stars,
-            tappingPoints: tappingPoints,
-            tappingGuruUses: tappingGuruUses,
-            fullTankUses: fullTankUses,
-            lastSaveTime: Date.now()
-        };
-        tgWebApp.CloudStorage.setItem(`user_${userId}_data`, JSON.stringify(userData), (error, result) => {
-            if (error) {
-                console.error('Error saving user data:', error);
-            } else {
-                console.log('User data saved successfully');
-            }
-        });
-    }
+    const userData = {
+        stars: stars,
+        tappingPoints: tappingPoints,
+        tappingGuruUses: tappingGuruUses,
+        fullTankUses: fullTankUses,
+        lastSaveTime: Date.now()
+    };
+    tgWebApp.CloudStorage.setItem(`user_${userId}_data`, JSON.stringify(userData), (error, result) => {
+        if (error) {
+            console.error('Error saving user data:', error);
+        } else {
+            console.log('User data saved successfully');
+        }
+    });
+}
 
     // Update UI
     function updateUI() {
@@ -260,7 +259,14 @@
             stars += earnedPoints;
             tappingPoints--;
             updateUI();
-            saveUserData();
+          saveUserData();
+});
+
+tgWebApp.onEvent('viewportChanged', (event) => {
+    if (!event.isStateStable) {
+        saveUserData(); // Save when the app is being closed
+    }
+});
 
             // Coin animation
             coinElement.classList.add('coin-animation');

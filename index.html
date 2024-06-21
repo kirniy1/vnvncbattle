@@ -42,7 +42,7 @@
             margin: auto;
             overflow: hidden;
             position: absolute;
-            top: 50%;
+            top: 60%;
             left: 50%;
             transform: translate(-50%, -50%);
         }
@@ -277,16 +277,13 @@
             );
 
             tg.HapticFeedback.impactOccurred('light');
+            saveGameState();
         }
 
-        function refillPoints() {
-            const now = Date.now();
-            const timePassed = now - lastRefillTime;
+        function refillPoints(timePassed = 60000) {
             const pointsToAdd = Math.floor((timePassed / refillInterval) * pointsLimit * rechargeMultiplier);
-            
             availablePoints = Math.min(availablePoints + pointsToAdd, pointsLimit);
-            lastRefillTime = now;
-
+            lastRefillTime = Date.now();
             updateProgressBar();
         }
 
@@ -324,6 +321,7 @@
             } else {
                 showError(`No more ${boosterType} uses left!`);
             }
+            saveGameState();
         }
 
         function updateBoosterDisplay(boosterType) {
@@ -356,28 +354,40 @@
             } else {
                 showError("Not enough stars to purchase this booster!");
             }
+            saveGameState();
         }
 
-        function initGame() {
-            console.log("Initializing game");
-            tg.expand();
-            const coin = document.getElementById('coin');
-            if (coin) {
-                coin.addEventListener('click', onCoinTap);
+        function saveGameState() {
+            const gameState = {
+                score: score,
+                availablePoints: availablePoints,
+                lastRefillTime: lastRefillTime,
+                isMultitapEnabled: isMultitapEnabled,
+                rechargeMultiplier: rechargeMultiplier,
+                tappingMultiplier: tappingMultiplier,
+                boosters: boosters,
+                lastSaveTime: Date.now()
+            };
+            localStorage.setItem('vnvncBattleState', JSON.stringify(gameState));
+        }
+
+        function loadGameState() {
+            const savedState = localStorage.getItem('vnvncBattleState');
+            if (savedState) {
+                const gameState = JSON.parse(savedState);
+                score = gameState.score;
+                availablePoints = gameState.availablePoints;
+                lastRefillTime = gameState.lastRefillTime;
+                isMultitapEnabled = gameState.isMultitapEnabled;
+                rechargeMultiplier = gameState.rechargeMultiplier;
+                tappingMultiplier = gameState.tappingMultiplier;
+                boosters = gameState.boosters;
+                
+                // Calculate time passed since last save
+                const timePassed = Date.now() - gameState.lastSaveTime;
+                refillPoints(timePassed);
+                checkBoosterTimers(timePassed);
             }
-            setInterval(refillPoints, 60000); // Check for refill every minute
-            updateScore();
-            updateProgressBar();
-            tg.ready();
         }
 
-        document.addEventListener('DOMContentLoaded', initGame);
-
-        // Global error handler
-        window.onerror = function(message, source, lineno, colno, error) {
-            showError(`Error: ${message} (${source}:${lineno})`);
-            console.error(error);
-        };
-    </script>
-</body>
-</html>
+        function checkBo

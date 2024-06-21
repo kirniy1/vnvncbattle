@@ -216,12 +216,30 @@
             }
         }
 
-        function updateScore() {
-            const scoreContainer = document.getElementById('score-container');
-            if (scoreContainer) {
-                scoreContainer.textContent = `SCORE: ${score} ⭐️`;
-            }
+      async function updateScore() {
+    const scoreContainer = document.getElementById('score-container');
+    if (scoreContainer) {
+        scoreContainer.textContent = `SCORE: ${score} ⭐️`;
+        try {
+            await tg.CloudStorage.setItem(getUserId(), score.toString());
+        } catch (error) {
+            console.error('Failed to save score:', error);
+            showError('Failed to save score. Please try again.');
         }
+    }
+}
+        async function loadScore() {
+    try {
+        const savedScore = await tg.CloudStorage.getItem(getUserId());
+        if (savedScore !== null) {
+            score = parseInt(savedScore, 10);
+            updateScore();
+        }
+    } catch (error) {
+        console.error('Failed to load score:', error);
+        showError('Failed to load score. Starting from 0.');
+    }
+}
 
         function updateProgressBar() {
             const progressBar = document.getElementById('progress');
@@ -253,6 +271,8 @@
 
         function onCoinTap(event) {
             console.log("Coin tapped");
+             await updateScore();
+
             if (availablePoints <= 0) return;
 
             const basePoints = isMultitapEnabled ? 5 : 1;
@@ -359,130 +379,32 @@
             }
         }
 
-        function initGame() {
-            console.log("Initializing game");
-            tg.expand();
-            const coin = document.getElementById('coin');
-            if (coin) {
-                coin.addEventListener('click', onCoinTap);
-            }
-            setInterval(refillPoints, 60000); // Check for refill every minute
-            updateScore();
-            updateProgressBar();
-            tg.ready();
-        }
-
-        document.addEventListener('DOMContentLoaded', initGame);
-
-        // Global error handler
-        window.onerror = function(message, source, lineno, colno, error) {
-            showError(`Error: ${message} (${source}:${lineno})`);
-            console.error(error);
-        };
-    </script>
-      <script>
-        console.log("Script started");
-        const tg = window.Telegram.WebApp;
-        let score = 0;
-        let pointsLimit = 2000;
-        let availablePoints = 2000;
-        let lastRefillTime = Date.now();
-        let isMultitapEnabled = false;
-        let rechargeMultiplier = 1;
-        let tappingMultiplier = 1;
-        const refillInterval = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
-
-        const boosters = {
-            tappingGuru: { uses: 3, active: false },
-            fullTank: { uses: 3, active: false }
-        };
-
         function getUserId() {
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                return tg.initDataUnsafe.user.id.toString();
-            }
-            return 'unknown_user';
-        }
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        return tg.initDataUnsafe.user.id.toString();
+    }
+    return 'unknown_user';
+}
 
-        function showError(message) {
-            console.error(message);
-            const errorMessage = document.getElementById('error-message');
-            if (errorMessage) {
-                errorMessage.textContent = message;
-                setTimeout(() => {
-                    errorMessage.textContent = '';
-                }, 3000);
-            }
-        }
+       async function initGame() {
+    console.log("Initializing game");
+    tg.expand();
+    const coin = document.getElementById('coin');
+    if (coin) {
+        coin.addEventListener('click', onCoinTap);
+    }
+    await loadScore(); // Load the saved score
+    setInterval(refillPoints, 60000); // Check for refill every minute
+    updateProgressBar();
+    tg.ready();
+}
+     document.addEventListener('DOMContentLoaded', () => {
+    initGame().catch(error => {
+        console.error('Error initializing game:', error);
+        showError('Failed to initialize game. Please try again.');
+    });
+});
 
-        function updateScore() {
-            const scoreContainer = document.getElementById('score-container');
-            if (scoreContainer) {
-                scoreContainer.textContent = `SCORE: ${score} ⭐️`;
-                // Save the score
-                tg.CloudStorage.setItem(getUserId(), score.toString());
-            }
-        }
-
-        async function loadScore() {
-            try {
-                const savedScore = await tg.CloudStorage.getItem(getUserId());
-                if (savedScore !== null) {
-                    score = parseInt(savedScore, 10);
-                    updateScore();
-                }
-            } catch (error) {
-                console.error('Failed to load score:', error);
-                showError('Failed to load score. Starting from 0.');
-            }
-        }
-
-        function updateProgressBar() {
-            // [The existing updateProgressBar function remains unchanged]
-        }
-
-        function createPointPopup(x, y, points) {
-            // [The existing createPointPopup function remains unchanged]
-        }
-
-        function onCoinTap(event) {
-            // [The existing onCoinTap function remains unchanged]
-        }
-
-        function refillPoints() {
-            // [The existing refillPoints function remains unchanged]
-        }
-
-        function showPage(pageId) {
-            // [The existing showPage function remains unchanged]
-        }
-
-        function activateBooster(boosterType) {
-            // [The existing activateBooster function remains unchanged]
-        }
-
-        function updateBoosterDisplay(boosterType) {
-            // [The existing updateBoosterDisplay function remains unchanged]
-        }
-
-        function purchaseBooster(boosterType) {
-            // [The existing purchaseBooster function remains unchanged]
-        }
-
-        async function initGame() {
-            console.log("Initializing game");
-            tg.expand();
-            const coin = document.getElementById('coin');
-            if (coin) {
-                coin.addEventListener('click', onCoinTap);
-            }
-            await loadScore(); // Load the saved score
-            setInterval(refillPoints, 60000); // Check for refill every minute
-            updateProgressBar();
-            tg.ready();
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => await initGame());
 
         // Global error handler
         window.onerror = function(message, source, lineno, colno, error) {

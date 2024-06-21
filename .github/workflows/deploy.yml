@@ -13,4 +13,4 @@ jobs:
       - uses: digitalocean/app_action@main
         with:
           app_name: vnvnc-coin-tapper
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          token: ${{ secrets.dop_v1_84cf87601d71c7c1be12f432b76f414de56e813b838cc0c59365cb3d16b5b134 }}

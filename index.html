@@ -380,5 +380,116 @@
         };
     </script>
     <script src="score-keeper.js"></script>
+<script>
+    const serverUrl = 'http://vnvnc-coin-tapper-server-1.kirniy.repl.co';
+
+    async function getTelegramId() {
+        try {
+            const tg = window.Telegram.WebApp;
+            return tg.initDataUnsafe.user.id;
+        } catch (error) {
+            showError(`Failed to get Telegram ID: ${error.message}`);
+            return null;
+        }
+    }
+
+    async function saveScore(score) {
+        try {
+            const telegramId = await getTelegramId();
+            if (telegramId) {
+                await axios.post(`${serverUrl}/api/user/${telegramId}`, { score });
+                console.log('Score saved successfully');
+            }
+        } catch (error) {
+            showError(`Failed to save score: ${error.message}`);
+        }
+    }
+
+    async function loadScore() {
+        try {
+            const telegramId = await getTelegramId();
+            if (telegramId) {
+                const response = await axios.get(`${serverUrl}/api/user/${telegramId}`);
+                return response.data.score || 0;
+            }
+            return 0;
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                console.log('User not found, creating a new user');
+            } else {
+                showError(`Failed to load score: ${error.message}`);
+            }
+            return 0;
+        }
+    }
+
+    function showError(message) {
+        console.error(message);
+        const errorMessage = document.getElementById('error-message');
+        if (errorMessage) {
+            errorMessage.textContent = message;
+            setTimeout(() => {
+                errorMessage.textContent = '';
+            }, 3000);
+        }
+    }
+
+    function initGame() {
+        console.log("Initializing game");
+        tg.expand();
+        const coin = document.getElementById('coin');
+        if (coin) {
+            coin.addEventListener('click', onCoinTap);
+        }
+        setInterval(refillPoints, 60000); // Check for refill every minute
+        loadScore().then((initialScore) => {
+            score = initialScore;
+            updateScore();
+        });
+        updateScore();
+        updateProgressBar();
+        tg.ready();
+    }
+
+    function onCoinTap(event) {
+        console.log("Coin tapped");
+        if (availablePoints <= 0) return;
+
+        const basePoints = isMultitapEnabled ? 5 : 1;
+        const pointsToAdd = Math.min(basePoints * tappingMultiplier, availablePoints);
+        score += pointsToAdd;
+        availablePoints -= pointsToAdd;
+
+        updateScore();
+        updateProgressBar();
+
+        const coin = document.getElementById('coin');
+        if (coin) {
+            coin.style.transform = 'translate(-50%, -50%) rotate(5deg)';
+            setTimeout(() => { 
+                coin.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+            }, 100);
+        }
+
+        createPointPopup(
+            event.clientX,
+            event.clientY,
+            pointsToAdd
+        );
+
+        tg.HapticFeedback.impactOccurred('light');
+        saveScore(score);
+    }
+
+    document.addEventListener('DOMContentLoaded', initGame);
+
+    // Global error handler
+    window.onerror = function(message, source, lineno, colno, error) {
+        showError(`Error: ${message} (${source}:${lineno})`);
+        console.error(error);
+    };
+</script>
+<script src="score-keeper.js"></script>
+
 </body>
 </html>

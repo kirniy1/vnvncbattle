@@ -58,16 +58,6 @@
             animation: pulse 2s infinite;
         }
 
-        #saveScoreButton {
-            margin-left: 10px;
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -247,7 +237,6 @@
         <div id="title">VNVNC COIN MANIA</div>
         <div id="scoreContainer">
             <div id="score">0⭐️</div>
-            <button id="saveScoreButton">Save Score</button>
         </div>
         <div id="coinContainer">
             <div id="coin">
@@ -309,8 +298,11 @@
         const tappingPointsElement = document.getElementById('tappingPoints');
 
         function updateScore() {
+            score += tappingMultiplier;
             scoreElement.textContent = score + '⭐️';
-            tg.CloudStorage.setItem('score', score.toString());
+            saveGameData();
+            checkMilestones();
+            bigMilestone();
         }
 
         function updateProgress() {
@@ -359,12 +351,10 @@
 
         coinElement.addEventListener('click', (e) => {
             if (tappingPoints > 0) {
-                const points = tappingMultiplier;
-                score += points;
-                tappingPoints--;
                 updateScore();
+                tappingPoints--;
                 updateProgress();
-                createTapAnimation(e.clientX, e.clientY, points);
+                createTapAnimation(e.clientX, e.clientY, tappingMultiplier);
                 
                 for (let i = 0; i < 10; i++) {
                     const offsetX = (Math.random() - 0.5) * 100;
@@ -373,7 +363,7 @@
                 }
                 
                 tapCount++;
-                if (tapCount >= 5) {
+                if (tapCount >= 25) {
                     flipCoin();
                     tapCount = 0;
                 } else {
@@ -419,25 +409,18 @@
         }
 
         function loadGameData() {
-            showSyncIndicator();
-            tg.showProgress();
-            robustCloudStorageOperation('getItems', ['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'])
-                .then(result => {
+            tg.CloudStorage.getItems(['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'], (error, result) => {
+                if (!error) {
                     score = parseInt(result.score) || 0;
                     tappingGuruUses = parseInt(result.tappingGuruUses) || 3;
                     fullTankUses = parseInt(result.fullTankUses) || 3;
                     lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
-                    updateScore(); // This line updates the score display
+                    updateScore(); // This will update the score display
                     updateBoostUses();
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                })
-                .catch(error => {
+                } else {
                     console.error('Error loading game data:', error);
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                    tg.showAlert('Failed to load game data. Please check your connection and try again.');
-                });
+                }
+            });
         }
 
         function activateBoost(boostType) {

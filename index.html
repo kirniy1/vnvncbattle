@@ -6,14 +6,15 @@
     <title>VNVNC COIN BATTLE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- The only place external scripts can be imported from is https://cdnjs.cloudflare.com -->
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: var(--tg-theme-bg-color, #FFFFFF);
-            color: var(--tg-theme-text-color, #000000);
+            background-color: #000000;
+            color: #FFFFFF;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -40,12 +41,12 @@
             font-size: 24px;
             margin: 0;
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
         }
         #instructions {
             font-size: 14px;
             margin-top: 5px;
-            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            background-color: var(--tg-theme-secondary-bg-color, #333333);
             padding: 5px;
             border-radius: 5px;
         }
@@ -69,8 +70,8 @@
             color: #2b2640;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
             box-shadow: 
-                0 10px 20px rgba(0, 0, 0, 0.4), 
-                0 5px 10px rgba(0, 0, 0, 0.3),
+                0 10px 20px rgba(255, 255, 255, 0.4), 
+                0 5px 10px rgba(255, 255, 255, 0.3),
                 inset 0 -10px 10px -5px rgba(0, 0, 0, 0.5),
                 inset 0 10px 10px -5px rgba(255, 255, 255, 0.5);
             position: relative;
@@ -107,7 +108,7 @@
         #progressBar {
             width: 100%;
             height: 20px;
-            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            background-color: var(--tg-theme-secondary-bg-color, #333333);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -125,13 +126,13 @@
             display: flex;
             justify-content: space-around;
             width: 100%;
-            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            background-color: var(--tg-theme-secondary-bg-color, #333333);
             padding: 10px 0;
         }
         #bottomMenu button {
             background-color: transparent;
             border: none;
-            color: var(--tg-theme-text-color, #000000);
+            color: var(--tg-theme-text-color, #FFFFFF);
             padding: 10px 20px;
             text-align: center;
             text-decoration: none;
@@ -198,6 +199,7 @@
         let fullTankUses = 0;
         let lastSaveTime = Date.now();
         const saveInterval = 60000; // Save every minute
+        let userData = null;
 
         function updateUI() {
             document.getElementById('stars').textContent = `${stars} ⭐`;
@@ -282,6 +284,15 @@
             });
         }
 
+        function parseInitData() {
+            const initData = Telegram.WebApp.initData;
+            if (initData) {
+                const parsedData = new URLSearchParams(initData);
+                userData = JSON.parse(parsedData.get('user') || '{}');
+                console.log('User Data:', userData);
+            }
+        }
+
         document.getElementById('coin').addEventListener('click', incrementStars);
 
         function showRules() {
@@ -289,12 +300,17 @@
         }
 
         function showLeaderboard() {
-            // This function should be implemented to show the leaderboard
-            // You might want to fetch data from a server or use Telegram's functionality
-            Telegram.WebApp.showAlert('Таблица лидеров пока недоступна. Следите за обновлениями!');
+            if (userData && userData.first_name) {
+                Telegram.WebApp.showAlert(`Таблица лидеров пока недоступна. Следите за обновлениями, ${userData.first_name}!`);
+            } else {
+                Telegram.WebApp.showAlert('Таблица лидеров пока недоступна. Следите за обновлениями!');
+            }
         }
 
-        window.onload = loadUserData;
+        window.onload = function() {
+            loadUserData();
+            parseInitData();
+        };
 
         window.onbeforeunload = function() {
             saveUserData();

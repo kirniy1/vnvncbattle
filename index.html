@@ -200,6 +200,12 @@
             border-radius: 50%;
             animation: sparkle 0.5s linear infinite;
         }
+        #syncIndicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -221,6 +227,7 @@
             <button class="page-button" onclick="showPage('tapPage')">Tap ⭐️</button>
             <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
             <button class="page-button" onclick="showRules()">Rules 📋</button>
+            <button id="syncButton" onclick="manualSync()">Sync Data</button>
         </div>
         <div id="boostPage">
             <div class="boost-section">
@@ -237,6 +244,8 @@
     </div>
 
     <button id="debugButton" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">Debug</button>
+
+    <div id="syncIndicator">Syncing...</div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -398,19 +407,23 @@
 
         // Save game data
         function saveGameData() {
+            showSyncIndicator();
             const gameData = {
                 score: score.toString(),
                 tappingGuruUses: tappingGuruUses.toString(),
                 fullTankUses: fullTankUses.toString(),
                 lastBoostUseTime: JSON.stringify(lastBoostUseTime)
             };
-            tg.CloudStorage.setItems(gameData, (error) => {
-                if (error) {
-                    console.error('Error saving game data:', error);
-                } else {
+            robustCloudStorageOperation('setItems', gameData)
+                .then(() => {
                     console.log('Game data saved successfully');
-                }
-            });
+                    hideSyncIndicator();
+                })
+                .catch(error => {
+                    console.error('Error saving game data:', error);
+                    hideSyncIndicator();
+                    tg.showAlert('Failed to save game data. Please check your connection and try again.');
+                });
         }
 
         function updateBoostUses() {
@@ -442,7 +455,7 @@
         });
 
         // Add this line to save data when the user leaves the app
-        </script>
-        </body>
+        tg.onEvent('appClosing', saveGameData);
+    </script>
+</body>
 </html>
-</antArtifact>

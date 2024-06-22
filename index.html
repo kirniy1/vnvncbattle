@@ -61,7 +61,7 @@
             width: 280px;
             height: 280px;
             perspective: 1000px;
-            margin: 20px 0;
+            margin: 20px auto;
         }
 
         #coin {
@@ -103,7 +103,7 @@
             height: 30px;
             background-color: #333;
             border-radius: 15px;
-            margin: 10px 0;
+            margin: 10px auto;
             overflow: hidden;
             position: relative;
         }
@@ -187,7 +187,6 @@
                 <div class="back">MANIA</div>
             </div>
         </div>
-        <div id="tankInfo">Tapping Tank: Refills over time. Tap when full!</div>
         <div id="progressBar">
             <div id="progress"></div>
             <div id="tappingPoints">2000/2000</div>
@@ -197,23 +196,10 @@
             <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
             <button class="page-button" id="rulesButton">Rules 📋</button>
         </div>
-    </div>
-
-    <div id="tapPage">
-        <div id="coinContainer">
-            <div id="coin">
-                <div class="front">VNVNC</div>
-                <div class="back">MANIA</div>
-            </div>
+        <div id="boostPage" style="display: none;">
+            <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (x2 for 1 min)</button>
+            <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank</button>
         </div>
-        <div id="progressBar">
-            <div id="progress"></div>
-            <div id="tappingPoints">2000/2000</div>
-        </div>
-    </div>
-    <div id="boostPage" style="display: none;">
-        <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (x2 for 1 min)</button>
-        <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank</button>
     </div>
 
     <script>
@@ -309,20 +295,18 @@
         });
 
         function showPage(pageId) {
-            const pages = ['tapPage', 'boostPage'];
-            pages.forEach(page => {
-                const element = document.getElementById(page);
-                if (element) {
-                    element.style.display = page === pageId ? 'block' : 'none';
-                }
-            });
-            
+            const coinContainer = document.getElementById('coinContainer');
+            const progressBar = document.getElementById('progressBar');
+            const boostPage = document.getElementById('boostPage');
+
             if (pageId === 'tapPage') {
-                document.getElementById('coinContainer').style.display = 'block';
-                document.getElementById('progressBar').style.display = 'block';
-            } else {
-                document.getElementById('coinContainer').style.display = 'none';
-                document.getElementById('progressBar').style.display = 'none';
+                coinContainer.style.display = 'block';
+                progressBar.style.display = 'block';
+                boostPage.style.display = 'none';
+            } else if (pageId === 'boostPage') {
+                coinContainer.style.display = 'none';
+                progressBar.style.display = 'none';
+                boostPage.style.display = 'block';
             }
         }
 

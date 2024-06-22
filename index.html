@@ -387,7 +387,7 @@ function updateScoreDisplay(newScore) {
 }
 
 function updateTappingPointsDisplay(newPoints) {
-    tappingPoints = Math.min(tappingPoints, parseInt(newPoints));
+    tappingPoints = parseInt(newPoints);
     updateProgress();
     console.log('Tapping points updated:', tappingPoints);
 }
@@ -512,16 +512,27 @@ async function performDailyCheckin() {
     const data = await response.json();
     if (data.ok) {
       showNotification(data.result);
+      // Add 5000 to the local tapping points
       tappingPoints += 5000;
       updateTappingPointsDisplay(tappingPoints);
+      // Send the updated tapping points to the server
+      await updateScoreAndPoints(score, tappingPoints);
       lastDailyCheckin = Date.now();
       updateDailyCheckinButton();
     } else {
-      showNotification('Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
+      showNotification(data.error || 'Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
     }
   } catch (error) {
     console.error('Error performing daily check-in:', error);
     showNotification('Ошибка при выполнении ежедневного чекина. Пожалуйста, проверьте подключение.');
+  }
+}
+
+async function updateScoreAndPoints(newScore, newTappingPoints) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'updateScoreAndPoints', score: newScore, tappingPoints: newTappingPoints }));
+  } else {
+    await updateScoreHTTP(newScore, newTappingPoints);
   }
 }
 

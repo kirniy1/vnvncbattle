@@ -313,8 +313,7 @@
         </ol>
     </div>
     <div id="notification"></div>
-</body>
-<script>
+    <script>
    let tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -642,7 +641,7 @@ coinContainer.addEventListener('click', async (e) => {
         
         animateCoin();
 
-        tg.HapticFeedback.impactOccurred('light');
+        tg.HapticFeedback.impactOccurred('heavy');
     } else {
         showNotification("Нет очков тапа! Дождитесь ежедневного чекина.");
     }

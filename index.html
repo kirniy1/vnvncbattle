@@ -320,6 +320,7 @@ const coinContainer = document.getElementById('coinContainer');
 
 function connectWebSocket() {
     const chatId = tg.initDataUnsafe.user.id;
+    console.log('Connecting WebSocket with chatId:', chatId);
     ws = new WebSocket(`wss://sunrise-tundra-glass.glitch.me?chatId=${chatId}`);
     
     ws.onopen = () => {
@@ -328,11 +329,10 @@ function connectWebSocket() {
     };
     
     ws.onmessage = (event) => {
+        console.log('Received WebSocket message:', event.data);
         const data = JSON.parse(event.data);
         if (data.type === 'initScore' || data.type === 'scoreUpdate') {
-            score = data.score;
-            scoreElement.textContent = score + '⭐️';
-            console.log('Score updated:', score);
+            updateScoreDisplay(data.score);
         }
     };
     
@@ -340,16 +340,78 @@ function connectWebSocket() {
         console.log('WebSocket disconnected. Reconnecting...');
         setTimeout(connectWebSocket, 1000);
     };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+}
+
+function updateScoreDisplay(newScore) {
+    score = parseInt(newScore);
+    scoreElement.textContent = score + '⭐️';
+    console.log('Score display updated:', score);
 }
 
 async function updateScore() {
     score += tappingMultiplier;
+    updateScoreDisplay(score);
     if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('Sending score update:', score);
         ws.send(JSON.stringify({ type: 'updateScore', score: score }));
     } else {
         console.error('WebSocket is not open. Score update failed.');
+        await updateScoreHTTP(score);
     }
     checkMilestones();
+}
+
+async function updateScoreHTTP(newScore) {
+    try {
+        const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: {
+                    chat: { id: tg.initDataUnsafe.user.id },
+                    text: `/setscore ${newScore}`
+                }
+            })
+        });
+        const data = await response.json();
+        if (data.ok) {
+            console.log('Score updated via HTTP:', newScore);
+        } else {
+            console.error('Failed to update score via HTTP:', data.description);
+        }
+    } catch (error) {
+        console.error('Error updating score via HTTP:', error);
+    }
+}
+
+async function fetchScoreHTTP() {
+    try {
+        const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: {
+                    chat: { id: tg.initDataUnsafe.user.id },
+                    text: '/score'
+                }
+            })
+        });
+        const data = await response.json();
+        if (data.ok) {
+            const fetchedScore = parseInt(data.result.split(': ')[1]);
+            updateScoreDisplay(fetchedScore);
+        }
+    } catch (error) {
+        console.error('Error fetching score:', error);
+    }
 }
 
 function checkMilestones() {
@@ -517,6 +579,13 @@ function showNotification(message) {
 
 async function initializeApp() {
     connectWebSocket();
+    // Fallback to HTTP if WebSocket doesn't update score within 3 seconds
+    setTimeout(() => {
+        if (score === 0) {
+            console.log('WebSocket did not update score, falling back to HTTP');
+            fetchScoreHTTP();
+        }
+    }, 3000);
     await fetchBoostData();
     updateProgress();
     showPage('tapPage');
@@ -555,6 +624,8 @@ tg.onEvent('viewportChanged', function(isStateStable) {
     if (!isStateStable) {
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'updateScore', score: score }));
+        } else {
+            updateScoreHTTP(score);
         }
     }
 });

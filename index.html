@@ -320,7 +320,7 @@ const coinContainer = document.getElementById('coinContainer');
 
 function connectWebSocket() {
     const chatId = tg.initDataUnsafe.user.id;
-    ws = new WebSocket(`wss://your-glitch-project.glitch.me?chatId=${chatId}`);
+    ws = new WebSocket(`wss://sunrise-tundra-glass.glitch.me?chatId=${chatId}`);
     
     ws.onopen = () => {
         console.log('WebSocket connected');

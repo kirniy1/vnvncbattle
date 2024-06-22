@@ -81,6 +81,7 @@
             justify-content: center;
             font-size: 40px;
             font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
         #coin .front {
             background: linear-gradient(45deg, #ffd700, #ff8c00);
@@ -145,6 +146,10 @@
             color: #ffffff;
             cursor: pointer;
             margin: 0 10px;
+            transition: transform 0.1s;
+        }
+        .page-button:active {
+            transform: scale(0.95);
         }
         #boostPage {
             display: none;
@@ -161,7 +166,7 @@
             margin-bottom: 10px;
         }
         .boost-button {
-            margin: 10px;
+            margin: 10px auto;
             padding: 15px;
             font-size: 18px;
             background: linear-gradient(45deg, #ffd700, #ff8c00);
@@ -170,11 +175,9 @@
             color: #000000;
             cursor: pointer;
             transition: transform 0.2s;
-            width: 80%;
-            max-width: 300px;
-        }
-        .boost-button:hover {
-            transform: scale(1.05);
+            width: calc(100% - 40px);
+            max-width: 400px;
+            display: block;
         }
         .boost-button:active {
             transform: scale(0.95);
@@ -194,12 +197,25 @@
         }
         .sparkle {
             position: absolute;
-            width: 5px;
-            height: 5px;
-            background-color: #ffff00;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #fff, #ff0);
             border-radius: 50%;
-            animation: sparkle 0.5s linear infinite;
+            pointer-events: none;
+            animation: sparkle-fade 1s ease-out forwards, sparkle-move 1s ease-out forwards;
+            transform: rotate(var(--angle));
         }
+
+        @keyframes sparkle-fade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes sparkle-move {
+            0% { transform: scale(0) rotate(var(--angle)); }
+            100% { transform: scale(1) rotate(var(--angle)) translate(50px, 50px); }
+        }
+
         #syncIndicator {
             position: fixed;
             top: 10px;
@@ -243,7 +259,7 @@
         </div>
     </div>
 
-    <button id="debugButton" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">Debug</button>
+    <button id="debugButton" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999; padding: 10px;">Debug</button>
 
     <div id="syncIndicator">Syncing...</div>
 
@@ -278,6 +294,30 @@
             progressElement.style.transition = 'width 0.3s ease-out';
         }
 
+        // Flip coin animation
+        let isFlipping = false;
+        coinElement.addEventListener('click', () => {
+            if (!isFlipping) {
+                isFlipping = true;
+                coinElement.style.transform = 'rotateY(180deg)';
+                setTimeout(() => {
+                    coinElement.style.transform = 'rotateY(0deg)';
+                    isFlipping = false;
+                }, 300);
+            }
+        });
+
+        // Improve sparkle animation
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = `${x}px`;
+            sparkle.style.top = `${y}px`;
+            sparkle.style.setProperty('--angle', `${Math.random() * 360}deg`);
+            document.body.appendChild(sparkle);
+            setTimeout(() => document.body.removeChild(sparkle), 1000);
+        }
+
         coinElement.addEventListener('click', (e) => {
             if (tappingPoints > 0) {
                 const pointsGained = 1 * tappingMultiplier;
@@ -301,12 +341,10 @@
                 document.body.appendChild(tapAnimation);
 
                 // Add sparkles
-                for (let i = 0; i < 5; i++) {
-                    const sparkle = document.createElement('div');
-                    sparkle.className = 'sparkle';
-                    sparkle.style.left = `${Math.random() * 40 - 20}px`;
-                    sparkle.style.top = `${Math.random() * 40 - 20}px`;
-                    tapAnimation.appendChild(sparkle);
+                for (let i = 0; i < 20; i++) {
+                    const offsetX = (Math.random() - 0.5) * 100;
+                    const offsetY = (Math.random() - 0.5) * 100;
+                    createSparkle(e.clientX + offsetX, e.clientY + offsetY);
                 }
 
                 setTimeout(() => {
@@ -380,34 +418,48 @@
         }
 
        function showRules() {
-            tg.showAlert('VNVNC COIN MANIA Rules:\n\n' +
-                '1. Tap the coin to earn stars.\n' +
-                '2. The Tapping Tank refills over time.\n' +
-                '3. Use daily boosts (3 times per 24h) to increase your earning rate.\n' +
-                '4. Purchase powerful boosts with your earned stars.\n' +
-                '5. Daily boosts reset every 24 hours.\n' +
-                '6. Compete with friends for the highest score!');
+            tg.showPopup({
+                title: 'VNVNC COIN MANIA Rules',
+                message: '1. Tap the coin to earn stars.\n' +
+                    '2. The Tapping Tank refills over time.\n' +
+                    '3. Use daily boosts (3 times per 24h) to increase your earning rate.\n' +
+                    '4. Purchase powerful boosts with your earned stars.\n' +
+                    '5. Daily boosts reset every 24 hours.\n' +
+                    '6. Compete with friends for the highest score!',
+                buttons: [{type: 'close'}]
+            });
         }
 
         // Load saved score and boost data
         function loadGameData() {
-            tg.CloudStorage.getItems(['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'], (error, result) => {
-                if (!error) {
+            showSyncIndicator();
+            tg.showProgress();
+            robustCloudStorageOperation('getItems', ['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'])
+                .then(result => {
                     score = parseInt(result.score) || 0;
                     tappingGuruUses = parseInt(result.tappingGuruUses) || 3;
                     fullTankUses = parseInt(result.fullTankUses) || 3;
                     lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
                     updateScore();
                     updateBoostUses();
-                } else {
+                    hideSyncIndicator();
+                    tg.hideProgress();
+                })
+                .catch(error => {
                     console.error('Error loading game data:', error);
-                }
-            });
+                    hideSyncIndicator();
+                    tg.hideProgress();
+                    tg.showAlert('Failed to load game data. Please check your connection and try again.');
+                });
         }
+
+        // Call loadGameData immediately when the script loads
+        loadGameData();
 
         // Save game data
         function saveGameData() {
             showSyncIndicator();
+            tg.showProgress();
             const gameData = {
                 score: score.toString(),
                 tappingGuruUses: tappingGuruUses.toString(),
@@ -418,10 +470,12 @@
                 .then(() => {
                     console.log('Game data saved successfully');
                     hideSyncIndicator();
+                    tg.hideProgress();
                 })
                 .catch(error => {
                     console.error('Error saving game data:', error);
                     hideSyncIndicator();
+                    tg.hideProgress();
                     tg.showAlert('Failed to save game data. Please check your connection and try again.');
                 });
         }
@@ -443,10 +497,6 @@
         // Save game data periodically
         setInterval(saveGameData, 30000);
 
-        // Initialize game
-        loadGameData();
-        updateProgress();
-
         // Handle app closing
         tg.onEvent('viewportChanged', function(isStateStable) {
             if (!isStateStable) {
@@ -456,6 +506,22 @@
 
         // Add this line to save data when the user leaves the app
         tg.onEvent('appClosing', saveGameData);
+
+        // Debug function
+        function debugCloudStorage() {
+            tg.showAlert(`Current score: ${score}`);
+            saveGameData()
+                .then(() => robustCloudStorageOperation('getItem', 'score'))
+                .then(loadedScore => {
+                    tg.showAlert(`Current score: ${score}\nLoaded score: ${loadedScore}`);
+                })
+                .catch(error => {
+                    tg.showAlert('Error during debug: ' + error);
+                });
+        }
+
+        // Add event listener to debug button
+        document.getElementById('debugButton').addEventListener('click', debugCloudStorage);
     </script>
 </body>
 </html>

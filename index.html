@@ -496,50 +496,50 @@ function showPage(pageId) {
 }
 
 async function performDailyCheckin() {
-    try {
-        const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: {
-                    chat: { id: tg.initDataUnsafe.user.id },
-                    text: '/dailycheckin'
-                }
-            }),
-        });
-        const data = await response.json();
-        if (data.ok) {
-            showNotification(data.result);
-            tappingPoints += 5000;
-            updateTappingPointsDisplay(tappingPoints);
-            lastDailyCheckin = Date.now();
-            updateDailyCheckinButton();
-        } else {
-            showNotification('Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
+  try {
+    const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: {
+          chat: { id: tg.initDataUnsafe.user.id },
+          text: '/dailycheckin'
         }
-    } catch (error) {
-        console.error('Error performing daily check-in:', error);
-        showNotification('Ошибка при выполнении ежедневного чекина. Пожалуйста, проверьте подключение.');
+      }),
+    });
+    const data = await response.json();
+    if (data.ok) {
+      showNotification(data.result);
+      tappingPoints += 5000;
+      updateTappingPointsDisplay(tappingPoints);
+      lastDailyCheckin = Date.now();
+      updateDailyCheckinButton();
+    } else {
+      showNotification('Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
     }
+  } catch (error) {
+    console.error('Error performing daily check-in:', error);
+    showNotification('Ошибка при выполнении ежедневного чекина. Пожалуйста, проверьте подключение.');
+  }
 }
 
 function updateDailyCheckinButton() {
-    const now = Date.now();
-    const timeSinceLastCheckin = now - lastDailyCheckin;
-    const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  const now = Date.now();
+  const timeSinceLastCheckin = now - lastDailyCheckin;
+  const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-    if (timeSinceLastCheckin >= cooldownPeriod) {
-        dailyCheckinButton.disabled = false;
-        dailyCheckinButton.textContent = 'Получить 5000⭐️';
-    } else {
-        dailyCheckinButton.disabled = true;
-        const timeLeft = cooldownPeriod - timeSinceLastCheckin;
-        const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
-        const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-        dailyCheckinButton.textContent = `Доступно через ${hoursLeft}ч ${minutesLeft}м`;
-    }
+  if (timeSinceLastCheckin >= cooldownPeriod) {
+    dailyCheckinButton.disabled = false;
+    dailyCheckinButton.textContent = 'Получить 5000⭐️';
+  } else {
+    dailyCheckinButton.disabled = true;
+    const timeLeft = cooldownPeriod - timeSinceLastCheckin;
+    const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+    const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+    dailyCheckinButton.textContent = `Доступно через ${hoursLeft}ч ${minutesLeft}м`;
+  }
 }
 
 function showNotification(message) {

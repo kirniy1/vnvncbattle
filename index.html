@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -38,6 +38,10 @@
             text-align: center;
             margin-bottom: 20px;
             color: #e94560;
+            padding: 10px;
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            background: rgba(233, 69, 96, 0.1);
         }
 
         #scoreContainer {
@@ -264,31 +268,31 @@
             <div id="tappingPoints">1000/1000</div>
         </div>
         <div id="pages">
-            <button class="page-button" onclick="showPage('tapPage')">Tap ⭐️</button>
-            <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
-            <button class="page-button" onclick="showPage('rulesPage')">Rules 📋</button>
+            <button class="page-button" onclick="showPage('tapPage')">Тап ⭐️</button>
+            <button class="page-button" onclick="showPage('boostPage')">Буст 🚀</button>
+            <button class="page-button" onclick="showPage('rulesPage')">Правила 📋</button>
         </div>
         <div id="boostPage" style="display: none;">
             <div id="boostInfo">
-                <p>Daily Boosts Available:</p>
-                <p>Tapping Guru: <span id="tappingGuruUses">3</span></p>
-                <p>Full Tank: <span id="fullTankUses">3</span></p>
+                <p>Доступные ежедневные бусты:</p>
+                <p>Гуру тапа: <span id="tappingGuruUses">3</span></p>
+                <p>Полный бак: <span id="fullTankUses">3</span></p>
             </div>
             <div id="boostExplanation">
-                <p>Boosts can be used 3 times per 24 hours. Tapping Guru doubles your tapping power for 1 minute. Full Tank refills your tapping points.</p>
+                <p>Бусты можно использовать 3 раза в сутки. Гуру тапа удваивает вашу силу тапа на 1 минуту. Полный бак пополняет ваши очки тапа.</p>
             </div>
-            <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (x2 for 1 min)</button>
-            <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank</button>
+            <button class="boost-button" onclick="activateBoost('tappingGuru')">Гуру тапа (х2 на 1 мин)</button>
+            <button class="boost-button" onclick="activateBoost('fullTank')">Полный бак</button>
         </div>
         <div id="rulesPage" style="display: none;">
-            <h2>VNVNC COIN MANIA Rules</h2>
+            <h2>Правила VNVNC COIN MANIA</h2>
             <ol>
-                <li>Tap the coin to earn stars.</li>
-                <li>The Tapping Tank refills every 3 hours.</li>
-                <li>Use daily boosts (3 times per 24h) to increase your earning rate.</li>
-                <li>Purchase powerful boosts with your earned stars.</li>
-                <li>Daily boosts reset every 24 hours.</li>
-                <li>Compete with friends for the highest score!</li>
+                <li>Тапайте по монете, чтобы заработать звезды.</li>
+                <li>Запас звезд автопополняется каждые 3 часа.</li>
+                <li>Используйте ежедневные бусты (3 раза в сутки) для увеличения скорости заработка.</li>
+                <li>Покупайте мощные бусты за заработанные звезды.</li>
+                <li>Ежедневные бусты обновляются каждые 24 часа.</li>
+                <li>Ждите анонсов от VNVNC об использовании звезд!</li>
             </ol>
         </div>
     </div>
@@ -324,7 +328,7 @@ function updateScore() {
 function checkMilestones() {
     const milestones = [100, 500, 1000, 5000, 10000];
     if (milestones.includes(score)) {
-        showNotification(`Congratulations! You've reached ${score} stars!`);
+        showNotification(`Поздравляем! Вы достигли ${score} звезд!`);
     }
 }
 
@@ -355,17 +359,21 @@ function createSparkle(x, y) {
 
 function tiltCoin() {
     const tiltAngle = Math.random() * 10 - 5;
-    coinElement.style.transform = `rotateY(${tiltAngle}deg)`;
+    coinElement.style.transition = 'transform 0.1s';
+    coinElement.style.transform = `rotateY(${tiltAngle}deg) rotateX(${tiltAngle}deg)`;
     setTimeout(() => {
-        coinElement.style.transform = 'rotateY(0deg)';
-    }, 150);
+        coinElement.style.transition = 'transform 0.3s';
+        coinElement.style.transform = 'rotateY(0deg) rotateX(0deg)';
+    }, 100);
 }
 
 function flipCoin() {
     if (!isFlipping) {
         isFlipping = true;
+        coinElement.style.transition = 'transform 0.6s';
         coinElement.style.transform = 'rotateY(360deg)';
         setTimeout(() => {
+            coinElement.style.transition = 'transform 0.3s';
             coinElement.style.transform = 'rotateY(0deg)';
             isFlipping = false;
         }, 600);
@@ -394,8 +402,13 @@ coinContainer.addEventListener('click', (e) => {
         }
 
         tg.HapticFeedback.impactOccurred('light');
+        
+        // Save score more frequently
+        if (tapCount % 5 === 0) {
+            saveGameData();
+        }
     } else {
-        showNotification("Out of tapping points! Wait for refill or use Full Tank boost.");
+        showNotification("Нет очков тапа! Дождитесь пополнения или используйте буст Полный бак.");
     }
 });
 
@@ -421,39 +434,55 @@ function saveGameData() {
         lastRefillTime: Date.now().toString()
     };
 
+    // Primary storage: Telegram CloudStorage
     tg.CloudStorage.setItem('gameData', JSON.stringify(gameData), (error) => {
         if (error) {
-            console.error('Error saving game data:', error);
-            showNotification('Failed to save game data. Please check your connection.');
+            console.error('Error saving game data to CloudStorage:', error);
+            // Backup storage: LocalStorage
+            try {
+                localStorage.setItem('gameDataBackup', JSON.stringify(gameData));
+                console.log('Game data saved to LocalStorage as backup');
+            } catch (e) {
+                console.error('Error saving game data to LocalStorage:', e);
+            }
+        } else {
+            console.log('Game data saved to CloudStorage successfully');
         }
     });
 }
 
 function loadGameData() {
+    // Try to load from CloudStorage first
     tg.CloudStorage.getItem('gameData', (error, value) => {
         if (!error && value) {
-            try {
-                const gameData = JSON.parse(value);
-                score = parseInt(gameData.score) || 0;
-                tappingGuruUses = parseInt(gameData.tappingGuruUses) || 3;
-                fullTankUses = parseInt(gameData.fullTankUses) || 3;
-                lastBoostUseTime = JSON.parse(gameData.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
-                
-                const lastRefillTime = parseInt(gameData.lastRefillTime) || 0;
-                checkAndRefillTank(lastRefillTime);
-
-                updateScore();
-                updateProgress();
-                updateBoostUses();
-            } catch (e) {
-                console.error('Error parsing game data:', e);
-                showNotification('Failed to load game data. Starting a new game.');
-            }
+            applyGameData(JSON.parse(value));
         } else {
-            console.error('Error loading game data:', error);
-            showNotification('Failed to load game data. Starting a new game.');
+            console.error('Error loading game data from CloudStorage:', error);
+            // If CloudStorage fails, try to load from LocalStorage
+            const backupData = localStorage.getItem('gameDataBackup');
+            if (backupData) {
+                applyGameData(JSON.parse(backupData));
+                console.log('Game data loaded from LocalStorage backup');
+            } else {
+                console.log('No backup data found, starting a new game');
+                showNotification('Не удалось загрузить данные игры. Начинаем новую игру.');
+            }
         }
     });
+}
+
+function applyGameData(gameData) {
+    score = parseInt(gameData.score) || 0;
+    tappingGuruUses = parseInt(gameData.tappingGuruUses) || 3;
+    fullTankUses = parseInt(gameData.fullTankUses) || 3;
+    lastBoostUseTime = JSON.parse(gameData.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
+    
+    const lastRefillTime = parseInt(gameData.lastRefillTime) || 0;
+    checkAndRefillTank(lastRefillTime);
+
+    updateScore();
+    updateProgress();
+    updateBoostUses();
 }
 
 function activateBoost(boostType) {
@@ -463,24 +492,24 @@ function activateBoost(boostType) {
             const serverTime = parseInt(gameData.serverTime) || Date.now();
             
             if (serverTime - lastBoostUseTime[boostType] < 24 * 60 * 60 * 1000) {
-                showNotification('This boost is on cooldown. Try again later!');
+                showNotification('Этот буст на перезарядке. Попробуйте позже!');
                 return;
             }
 
             if (boostType === 'tappingGuru' && tappingGuruUses > 0) {
                 tappingMultiplier *= 2;
                 tappingGuruUses--;
-                showNotification('Tapping Guru activated! Double points for 1 minute!');
+                showNotification('Гуру тапа активирован! Двойные очки на 1 минуту!');
                 setTimeout(() => {
                     tappingMultiplier /= 2;
-                    showNotification('Tapping Guru boost ended.');
+                    showNotification('Буст Гуру тапа закончился.');
                 }, 60000);
             } else if (boostType === 'fullTank' && fullTankUses > 0) {
                 tappingPoints = MAX_TAPPING_POINTS;
                 fullTankUses--;
-                showNotification('Full Tank activated! Tapping points refilled!');
+                showNotification('Полный бак активирован! Очки тапа пополнены!');
             } else {
-                showNotification('No more uses left for this boost!');
+                showNotification('Не осталось использований для этого буста!');
                 return;
             }
 
@@ -489,7 +518,7 @@ function activateBoost(boostType) {
             updateProgress();
             updateBoostUses();
         } else {
-            showNotification('Failed to activate boost. Please try again.');
+            showNotification('Не удалось активировать буст. Пожалуйста, попробуйте еще раз.');
         }
     });
 }
@@ -508,7 +537,7 @@ function checkAndRefillTank(lastRefillTime) {
         const refillAmount = Math.floor(timeSinceLastRefill / threeHoursInMs) * MAX_TAPPING_POINTS;
         tappingPoints = Math.min(tappingPoints + refillAmount, MAX_TAPPING_POINTS);
         updateProgress();
-        showNotification('Your tapping points have been refilled!');
+        showNotification('Ваши очки тапа были пополнены!');
     }
 }
 

@@ -328,7 +328,7 @@ function connectWebSocket() {
         ws.send(JSON.stringify({ type: 'getScore' }));
     };
     
-   ws.onmessage = (event) => {
+  ws.onmessage = (event) => {
     console.log('Received WebSocket message:', event.data);
     const data = JSON.parse(event.data);
     if (data.type === 'initData' || data.type === 'dataUpdate') {

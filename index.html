@@ -175,6 +175,24 @@
             0% { opacity: 1; transform: scale(1); }
             100% { opacity: 0; transform: scale(0); }
         }
+
+        .boost-button {
+            width: 80%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #4a4a4a;
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            margin: 10px auto;
+            display: block;
+            transition: transform 0.1s;
+        }
+
+        .boost-button:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
@@ -339,18 +357,25 @@
         }
 
         function loadGameData() {
-            tg.CloudStorage.getItems(['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'], (error, result) => {
-                if (!error) {
+            showSyncIndicator();
+            tg.showProgress();
+            robustCloudStorageOperation('getItems', ['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'])
+                .then(result => {
                     score = parseInt(result.score) || 0;
                     tappingGuruUses = parseInt(result.tappingGuruUses) || 3;
                     fullTankUses = parseInt(result.fullTankUses) || 3;
                     lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
-                    updateScore();
-                    updateProgress();
-                } else {
+                    updateScore(); // This line updates the score display
+                    updateBoostUses();
+                    hideSyncIndicator();
+                    tg.hideProgress();
+                })
+                .catch(error => {
                     console.error('Error loading game data:', error);
-                }
-            });
+                    hideSyncIndicator();
+                    tg.hideProgress();
+                    tg.showAlert('Failed to load game data. Please check your connection and try again.');
+                });
         }
 
         function activateBoost(boostType) {

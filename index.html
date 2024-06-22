@@ -193,6 +193,28 @@
         .boost-button:active {
             transform: scale(0.95);
         }
+
+        #rulesPage {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        #rulesPage h2 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #rulesPage ol {
+            padding-left: 20px;
+        }
+
+        #rulesPage li {
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -207,16 +229,27 @@
         </div>
         <div id="progressBar">
             <div id="progress"></div>
-            <div id="tappingPoints">2000/2000</div>
+            <div id="tappingPoints">1000/1000</div>
         </div>
         <div id="pages">
             <button class="page-button" onclick="showPage('tapPage')">Tap ⭐️</button>
             <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
-            <button class="page-button" id="rulesButton">Rules 📋</button>
+            <button class="page-button" onclick="showPage('rulesPage')">Rules 📋</button>
         </div>
         <div id="boostPage" style="display: none;">
             <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (x2 for 1 min)</button>
             <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank</button>
+        </div>
+        <div id="rulesPage" style="display: none;">
+            <h2>VNVNC COIN MANIA Rules</h2>
+            <ol>
+                <li>Tap the coin to earn stars.</li>
+                <li>The Tapping Tank refills every 3 hours.</li>
+                <li>Use daily boosts (3 times per 24h) to increase your earning rate.</li>
+                <li>Purchase powerful boosts with your earned stars.</li>
+                <li>Daily boosts reset every 24 hours.</li>
+                <li>Compete with friends for the highest score!</li>
+            </ol>
         </div>
     </div>
 
@@ -225,7 +258,8 @@
         tg.expand();
 
         let score = 0;
-        let tappingPoints = 2000;
+        let tappingPoints = 1000;
+        let MAX_TAPPING_POINTS = 1000;
         let tappingMultiplier = 1;
         let tappingGuruUses = 3;
         let fullTankUses = 3;
@@ -244,9 +278,9 @@
         }
 
         function updateProgress() {
-            const percentage = (tappingPoints / 2000) * 100;
+            const percentage = (tappingPoints / MAX_TAPPING_POINTS) * 100;
             progressElement.style.width = percentage + '%';
-            tappingPointsElement.textContent = tappingPoints + '/2000';
+            tappingPointsElement.textContent = tappingPoints + '/' + MAX_TAPPING_POINTS;
         }
 
         function createTapAnimation(x, y, points) {
@@ -313,32 +347,24 @@
         });
 
         function showPage(pageId) {
+            const pages = ['tapPage', 'boostPage', 'rulesPage'];
+            pages.forEach(page => {
+                const element = document.getElementById(page);
+                if (element) {
+                    element.style.display = page === pageId ? 'block' : 'none';
+                }
+            });
+            
             const coinContainer = document.getElementById('coinContainer');
             const progressBar = document.getElementById('progressBar');
-            const boostPage = document.getElementById('boostPage');
-
+            
             if (pageId === 'tapPage') {
                 coinContainer.style.display = 'block';
                 progressBar.style.display = 'block';
-                boostPage.style.display = 'none';
-            } else if (pageId === 'boostPage') {
+            } else {
                 coinContainer.style.display = 'none';
                 progressBar.style.display = 'none';
-                boostPage.style.display = 'block';
             }
-        }
-
-        function showRules() {
-            tg.showPopup({
-                title: 'VNVNC COIN MANIA Rules',
-                message: '1. Tap the coin to earn stars.\n' +
-                    '2. The Tapping Tank refills over time.\n' +
-                    '3. Use daily boosts (3 times per 24h) to increase your earning rate.\n' +
-                    '4. Purchase powerful boosts with your earned stars.\n' +
-                    '5. Daily boosts reset every 24 hours.\n' +
-                    '6. Compete with friends for the highest score!',
-                buttons: [{type: 'close'}]
-            });
         }
 
         function saveGameData() {
@@ -392,7 +418,7 @@
                     tappingMultiplier /= 2;
                 }, 60000); // 1 minute duration
             } else if (boostType === 'fullTank' && fullTankUses > 0) {
-                tappingPoints = 2000;
+                tappingPoints = MAX_TAPPING_POINTS;
                 fullTankUses--;
             } else {
                 tg.showAlert('No more uses left for this boost!');
@@ -405,13 +431,11 @@
             tg.showAlert('Boost activated!');
         }
 
-        document.getElementById('rulesButton').addEventListener('click', showRules);
-
-        // Make sure this function is called when the app loads
         function initializeApp() {
             loadGameData();
             updateProgress();
             document.getElementById('rulesButton').addEventListener('click', showRules);
+            // Add any other necessary initialization
         }
 
         document.addEventListener('DOMContentLoaded', initializeApp);
@@ -419,9 +443,30 @@
         // Handle app closing
         tg.onEvent('viewportChanged', function(isStateStable) {
             if (!isStateStable) {
-                tg.CloudStorage.setItem('score', score.toString());
+                saveGameData();
+            } else {
+                checkAndRefillTank();
             }
         });
+
+        function refillTappingPoints() {
+            const now = Date.now();
+            const lastRefillTime = parseInt(localStorage.getItem('lastRefillTime')) || 0;
+            const timeSinceLastRefill = now - lastRefillTime;
+            const threeHoursInMs = 3 * 60 * 60 * 1000;
+
+            if (timeSinceLastRefill >= threeHoursInMs) {
+                tappingPoints = MAX_TAPPING_POINTS;
+                localStorage.setItem('lastRefillTime', now.toString());
+                updateProgress();
+                saveGameData();
+            }
+        }
+
+        function checkAndRefillTank() {
+            refillTappingPoints();
+            updateProgress();
+        }
     </script>
 </body>
 </html>

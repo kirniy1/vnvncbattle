@@ -317,7 +317,7 @@
     </div>
     <div id="bonusPage">
         <div id="bonusTitle">Ежедневный чекин</div>
-        <button id="dailyCheckinButton" class="boost-button" onclick="performDailyCheckin()">Ежедневный чекин</button>
+        <button id="dailyCheckinButton">Получить 5000⭐️</button>
         <button class="page-button" onclick="showPage('mainPage')">Назад</button>
     </div>
     <div id="rulesPage">
@@ -338,14 +338,9 @@ tg.expand();
 
 let score = 0;
 let tappingPoints = 1000;
-let MAX_TAPPING_POINTS = 1000;
-let tappingMultiplier = 1;
-let tappingGuruUses = 3;
-let fullTankUses = 3;
-let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
-let isFlipping = false;
-let tapCount = 0;
+let lastDailyCheckin = 0;
 let ws;
+let updateTimeout = null;
 
 const scoreElement = document.getElementById('score');
 const coinElement = document.getElementById('coin');
@@ -392,7 +387,7 @@ function updateScoreDisplay(newScore) {
 }
 
 function updateTappingPointsDisplay(newPoints) {
-    tappingPoints = parseInt(newPoints);
+    tappingPoints = Math.min(tappingPoints, parseInt(newPoints));
     updateProgress();
     console.log('Tapping points updated:', tappingPoints);
 }
@@ -517,27 +512,16 @@ async function performDailyCheckin() {
     const data = await response.json();
     if (data.ok) {
       showNotification(data.result);
-      // Add 5000 to the local tapping points
       tappingPoints += 5000;
       updateTappingPointsDisplay(tappingPoints);
-      // Send the updated tapping points to the server
-      await updateScoreAndPoints(score, tappingPoints);
       lastDailyCheckin = Date.now();
       updateDailyCheckinButton();
     } else {
-      showNotification(data.error || 'Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
+      showNotification('Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
     }
   } catch (error) {
     console.error('Error performing daily check-in:', error);
     showNotification('Ошибка при выполнении ежедневного чекина. Пожалуйста, проверьте подключение.');
-  }
-}
-
-async function updateScoreAndPoints(newScore, newTappingPoints) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'updateScoreAndPoints', score: newScore, tappingPoints: newTappingPoints }));
-  } else {
-    await updateScoreHTTP(newScore, newTappingPoints);
   }
 }
 

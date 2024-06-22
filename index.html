@@ -352,7 +352,7 @@ function connectWebSocket() {
 }
 
 function updateScoreDisplay(newScore) {
-    score = parseInt(newScore);
+    score = Math.max(score, parseInt(newScore));
     scoreElement.textContent = score + '⭐️';
     console.log('Score display updated:', score);
 }
@@ -381,7 +381,7 @@ async function updateScore() {
             console.error('WebSocket is not open. Update failed.');
             updateScoreHTTP(score, tappingPoints);
         }
-    }, 100); // Wait 100ms before sending update
+    }, 300); // Wait 300ms before sending update
     
     checkMilestones();
 }
@@ -436,7 +436,7 @@ async function fetchScoreHTTP() {
     }
 }
         function updateTappingPointsDisplay(newPoints) {
-    tappingPoints = parseInt(newPoints);
+    tappingPoints = Math.max(tappingPoints, parseInt(newPoints));
     updateProgress();
     console.log('Tapping points updated:', tappingPoints);
 }
@@ -621,9 +621,53 @@ async function initializeApp() {
         };
     });
 
+    // Add this block to handle the initial score and tapping points
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'initData') {
+            score = data.score;
+            tappingPoints = data.tappingPoints;
+            updateScoreDisplay(score);
+            updateTappingPointsDisplay(tappingPoints);
+            // After initialization, revert to the original onmessage handler
+            setupRegularWebSocketHandler();
+        }
+    };
+
     await fetchBoostData();
     updateProgress();
     showPage('tapPage');
+
+    // Start periodic uploading of score to the server
+    setInterval(uploadScoreToServer, 1000);
+}
+
+function setupRegularWebSocketHandler() {
+    ws.onmessage = (event) => {
+        console.log('Received WebSocket message:', event.data);
+        const data = JSON.parse(event.data);
+        if (data.type === 'dataUpdate') {
+            // Only update if server values are higher
+            if (data.score > score) {
+                score = data.score;
+                updateScoreDisplay(score);
+            }
+            if (data.tappingPoints > tappingPoints) {
+                tappingPoints = data.tappingPoints;
+                updateTappingPointsDisplay(tappingPoints);
+            }
+        }
+    };
+}
+
+function uploadScoreToServer() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('Uploading score and tapping points to server:', score, tappingPoints);
+        ws.send(JSON.stringify({ type: 'updateScoreAndPoints', score: score, tappingPoints: tappingPoints }));
+    } else {
+        console.error('WebSocket is not open. Update failed.');
+        updateScoreHTTP(score, tappingPoints);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);

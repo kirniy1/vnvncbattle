@@ -288,6 +288,31 @@
             from { opacity: 1; }
             to { opacity: 0.5; }
         }
+
+        #dailyBonusButton {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            transition-duration: 0.4s;
+        }
+
+        #dailyBonusButton:hover {
+            background-color: #45a049;
+        }
+
+        #dailyBonusButton:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -346,6 +371,7 @@ let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
 let isFlipping = false;
 let tapCount = 0;
 let ws;
+let nextBonusTime = null;
 
 const scoreElement = document.getElementById('score');
 const coinElement = document.getElementById('coin');

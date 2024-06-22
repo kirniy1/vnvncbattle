@@ -276,6 +276,7 @@
                 <li>Compete with friends for the highest score!</li>
             </ol>
         </div>
+        <button id="testButton">Test Animation</button>
     </div>
 
     <script>
@@ -347,6 +348,36 @@
                     isFlipping = false;
                 }, 600);
             }
+        }
+
+        function createSimpleTapAnimation(x, y) {
+            const animation = document.createElement('div');
+            animation.textContent = '+1⭐️';
+            animation.style.position = 'absolute';
+            animation.style.left = `${x}px`;
+            animation.style.top = `${y}px`;
+            animation.style.fontSize = '24px';
+            animation.style.color = '#ffd700';
+            animation.style.pointerEvents = 'none';
+            document.body.appendChild(animation);
+
+            let opacity = 1;
+            let top = y;
+
+            function animate() {
+                opacity -= 0.02;
+                top -= 1;
+                animation.style.opacity = opacity;
+                animation.style.top = `${top}px`;
+
+                if (opacity > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    animation.remove();
+                }
+            }
+
+            requestAnimationFrame(animate);
         }
 
         coinElement.addEventListener('click', (e) => {

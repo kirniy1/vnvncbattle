@@ -215,7 +215,13 @@
         }
 
         function showPage(pageId) {
-            // Implement page switching logic here
+            const pages = ['tapPage', 'boostPage'];
+            pages.forEach(page => {
+                const element = document.getElementById(page);
+                if (element) {
+                    element.style.display = page === pageId ? 'block' : 'none';
+                }
+            });
         }
 
         function showRules() {
@@ -231,7 +237,21 @@
             });
         }
 
-        // Load saved score and boost data
+        function saveGameData() {
+            tg.CloudStorage.setItems({
+                score: score.toString(),
+                tappingGuruUses: tappingGuruUses.toString(),
+                fullTankUses: fullTankUses.toString(),
+                lastBoostUseTime: JSON.stringify(lastBoostUseTime)
+            }, (error) => {
+                if (error) {
+                    console.error('Error saving game data:', error);
+                } else {
+                    console.log('Game data saved successfully');
+                }
+            });
+        }
+
         function loadGameData() {
             tg.CloudStorage.getItems(['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'], (error, result) => {
                 if (!error) {
@@ -241,9 +261,18 @@
                     lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
                     updateScore();
                     updateProgress();
+                } else {
+                    console.error('Error loading game data:', error);
                 }
             });
         }
+
+        function activateBoost(boostType) {
+            const now = Date.now();
+            if (now - lastBoostUseTime[boostType] < 24 * 60 * 60 * 1000) {
+                tg.showAlert('This boost is on cooldown. Try again later!');
+                return;
+            }
 
         // Initialize game
         loadGameData();

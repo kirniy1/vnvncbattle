@@ -311,6 +311,7 @@ let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
 let isFlipping = false;
 let tapCount = 0;
 let ws;
+let updateTimeout = null;
 
 const scoreElement = document.getElementById('score');
 const coinElement = document.getElementById('coin');
@@ -328,23 +329,23 @@ function connectWebSocket() {
         ws.send(JSON.stringify({ type: 'getScore' }));
     };
     
-  ws.onmessage = (event) => {
-    console.log('Received WebSocket message:', event.data);
-    const data = JSON.parse(event.data);
-    if (data.type === 'initData' || data.type === 'dataUpdate') {
-        updateScoreDisplay(data.score);
-        updateTappingPointsDisplay(data.tappingPoints);
-    } else if (data.type === 'scoreUpdate') {
-        updateScoreDisplay(data.score);
-    } else if (data.type === 'tappingPointsUpdate') {
-        updateTappingPointsDisplay(data.tappingPoints);
-    }
-};
+    ws.onmessage = (event) => {
+        console.log('Received WebSocket message:', event.data);
+        const data = JSON.parse(event.data);
+        if (data.type === 'initData' || data.type === 'dataUpdate') {
+            updateScoreDisplay(data.score);
+            updateTappingPointsDisplay(data.tappingPoints);
+        } else if (data.type === 'scoreUpdate') {
+            updateScoreDisplay(data.score);
+        } else if (data.type === 'tappingPointsUpdate') {
+            updateTappingPointsDisplay(data.tappingPoints);
+        }
+    };
     
     ws.onclose = () => {
-    console.log('WebSocket disconnected. Reconnecting...');
-    setTimeout(connectWebSocket, 1000);
-};
+        console.log('WebSocket disconnected. Reconnecting...');
+        setTimeout(connectWebSocket, 1000);
+    };
 
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
@@ -357,8 +358,11 @@ function updateScoreDisplay(newScore) {
     console.log('Score display updated:', score);
 }
 
-let pendingUpdate = null;
-let updateTimeout = null;
+function updateTappingPointsDisplay(newPoints) {
+    tappingPoints = Math.max(tappingPoints, parseInt(newPoints));
+    updateProgress();
+    console.log('Tapping points updated:', tappingPoints);
+}
 
 async function updateScore() {
     score += tappingMultiplier;
@@ -427,15 +431,18 @@ async function fetchScoreHTTP() {
         });
         const data = await response.json();
         if (data.ok) {
-            const fetchedScore = parseInt(data.result.split(': ')[1]);
-            updateScoreDisplay(fetchedScore);
-            score = fetchedScore; // Update the global score variable
+            const [fetchedScore, fetchedTappingPoints] = data.result.split(': ')[1].split(', Tapping points: ');
+            score = parseInt(fetchedScore);
+            tappingPoints = parseInt(fetchedTappingPoints);
+            updateScoreDisplay(score);
+            updateTappingPointsDisplay(tappingPoints);
         }
     } catch (error) {
         console.error('Error fetching score:', error);
     }
 }
-        function updateTappingPointsDisplay(newPoints) {
+
+function updateTappingPointsDisplay(newPoints) {
     tappingPoints = Math.max(tappingPoints, parseInt(newPoints));
     updateProgress();
     console.log('Tapping points updated:', tappingPoints);

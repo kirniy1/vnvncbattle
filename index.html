@@ -236,6 +236,8 @@
         </div>
     </div>
 
+    <button id="debugButton" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">Debug</button>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -388,6 +390,8 @@
                     lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
                     updateScore();
                     updateBoostUses();
+                } else {
+                    console.error('Error loading game data:', error);
                 }
             });
         }
@@ -400,7 +404,13 @@
                 fullTankUses: fullTankUses.toString(),
                 lastBoostUseTime: JSON.stringify(lastBoostUseTime)
             };
-            tg.CloudStorage.setItems(gameData);
+            tg.CloudStorage.setItems(gameData, (error) => {
+                if (error) {
+                    console.error('Error saving game data:', error);
+                } else {
+                    console.log('Game data saved successfully');
+                }
+            });
         }
 
         function updateBoostUses() {
@@ -430,6 +440,8 @@
                 saveGameData();
             }
         });
+
+        // Add this line to save data when the user leaves the app
         </script>
         </body>
 </html>

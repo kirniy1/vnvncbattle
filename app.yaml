@@ -1,9 +1,0 @@
-name: vnvnc-coin-tapper
-region: nyc
-services:
-  - name: web
-    git:
-      repo: kirniy1/vnvncbattle
-      branch: main
-    env:
-      MONGODB_URI: $MONGODB_URI

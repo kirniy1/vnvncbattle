@@ -1,2 +1,5 @@
+.glitchdotcom.json
+.node-gyp
 node_modules
-.env
+# Add this line to your .gitignore file
+sqlite.db

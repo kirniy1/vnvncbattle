@@ -497,6 +497,10 @@ function showPage(pageId) {
 
 async function performDailyCheckin() {
   try {
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0, 10); // Get the current date in "YYYY-MM-DD" format
+    const userId = tg.initDataUnsafe.user.id;
+
     const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
       method: 'POST',
       headers: {
@@ -504,16 +508,25 @@ async function performDailyCheckin() {
       },
       body: JSON.stringify({
         message: {
-          chat: { id: tg.initDataUnsafe.user.id },
-          text: '/dailycheckin'
+          chat: { id: userId },
+          text: `/dailycheckin ${timestamp}`
         }
       }),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
+
     if (data.ok) {
       showNotification(data.result);
-      lastDailyCheckin = Date.now();
+      tappingPoints += 5000;
+      updateTappingPointsDisplay(tappingPoints);
+      lastDailyCheckin = now.getTime();
       updateDailyCheckinButton();
+      localStorage.setItem(`lastDailyCheckin_${userId}`, lastDailyCheckin.toString());
     } else {
       showNotification(data.error || 'Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
     }

@@ -317,7 +317,7 @@
     </div>
     <div id="bonusPage">
         <div id="bonusTitle">Ежедневный чекин</div>
-        <button id="dailyCheckinButton">Получить 5000⭐️</button>
+        <button id="dailyCheckinButton" class="boost-button" onclick="performDailyCheckin()">Ежедневный чекин</button>
         <button class="page-button" onclick="showPage('mainPage')">Назад</button>
     </div>
     <div id="rulesPage">
@@ -338,9 +338,14 @@ tg.expand();
 
 let score = 0;
 let tappingPoints = 1000;
-let lastDailyCheckin = 0;
+let MAX_TAPPING_POINTS = 1000;
+let tappingMultiplier = 1;
+let tappingGuruUses = 3;
+let fullTankUses = 3;
+let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
+let isFlipping = false;
+let tapCount = 0;
 let ws;
-let updateTimeout = null;
 
 const scoreElement = document.getElementById('score');
 const coinElement = document.getElementById('coin');

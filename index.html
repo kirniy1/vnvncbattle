@@ -193,11 +193,6 @@
             100% { opacity: 0; transform: scale(0); }
         }
 
-        #boostInfo, #boostExplanation {
-            margin-top: 20px;
-            text-align: center;
-        }
-
         #boostPage {
             margin-top: 30px;
             background-color: #000000;
@@ -264,22 +259,22 @@
             <div id="progress"></div>
             <div id="tappingPoints">1000/1000</div>
         </div>
-        <div id="boostInfo">
-            <p>Daily Boosts Available:</p>
-            <p>Tapping Guru: <span id="tappingGuruUses">3</span></p>
-            <p>Full Tank: <span id="fullTankUses">3</span></p>
-        </div>
-        <div id="boostExplanation">
-            <p>Boosts can be used 3 times per 24 hours. Tapping Guru doubles your tapping power for 1 minute. Full Tank refills your tapping points.</p>
-        </div>
-        <div id="boostPage" style="display: none;">
-            <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (x2 for 1 min)</button>
-            <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank</button>
-        </div>
         <div id="pages">
             <button class="page-button" onclick="showPage('tapPage')">Tap ⭐️</button>
             <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
             <button class="page-button" onclick="showPage('rulesPage')">Rules 📋</button>
+        </div>
+        <div id="boostPage" style="display: none;">
+            <div id="boostInfo">
+                <p>Daily Boosts Available:</p>
+                <p>Tapping Guru: <span id="tappingGuruUses">3</span></p>
+                <p>Full Tank: <span id="fullTankUses">3</span></p>
+            </div>
+            <div id="boostExplanation">
+                <p>Boosts can be used 3 times per 24 hours. Tapping Guru doubles your tapping power for 1 minute. Full Tank refills your tapping points.</p>
+            </div>
+            <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (x2 for 1 min)</button>
+            <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank</button>
         </div>
         <div id="rulesPage" style="display: none;">
             <h2>VNVNC COIN MANIA Rules</h2>

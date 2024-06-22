@@ -69,6 +69,7 @@
             height: 280px;
             perspective: 1000px;
             margin: 20px auto;
+            cursor: pointer;
         }
 
         #coin {
@@ -77,7 +78,6 @@
             position: relative;
             transition: transform 0.6s;
             transform-style: preserve-3d;
-            cursor: pointer;
         }
 
         #coin .front, #coin .back {
@@ -155,22 +155,24 @@
         }
 
         .tap-animation {
-            position: absolute;
+            position: fixed;
             font-size: 24px;
             font-weight: bold;
             color: #ffd700;
             pointer-events: none;
             animation: fadeUp 1s ease-out;
+            z-index: 1000;
         }
 
         .sparkle {
-            position: absolute;
+            position: fixed;
             width: 5px;
             height: 5px;
             background: #ffd700;
             border-radius: 50%;
             pointer-events: none;
             animation: sparkle 1s ease-out;
+            z-index: 1000;
         }
 
         @keyframes fadeUp {
@@ -230,6 +232,19 @@
             margin-bottom: 10px;
             color: #ffffff;
         }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -276,253 +291,249 @@
                 <li>Compete with friends for the highest score!</li>
             </ol>
         </div>
-        <button id="testButton">Test Animation</button>
     </div>
+    <div id="notification"></div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand();
+tg.expand();
 
-        let score = 0;
-        let tappingPoints = 1000;
-        let MAX_TAPPING_POINTS = 1000;
-        let tappingMultiplier = 1;
-        let tappingGuruUses = 3;
-        let fullTankUses = 3;
-        let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
-        let isFlipping = false;
-        let tapCount = 0;
+let score = 0;
+let tappingPoints = 1000;
+let MAX_TAPPING_POINTS = 1000;
+let tappingMultiplier = 1;
+let tappingGuruUses = 3;
+let fullTankUses = 3;
+let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
+let isFlipping = false;
+let tapCount = 0;
 
-        const scoreElement = document.getElementById('score');
-        const coinElement = document.getElementById('coin');
-        const progressElement = document.getElementById('progress');
-        const tappingPointsElement = document.getElementById('tappingPoints');
+const scoreElement = document.getElementById('score');
+const coinElement = document.getElementById('coin');
+const progressElement = document.getElementById('progress');
+const tappingPointsElement = document.getElementById('tappingPoints');
+const coinContainer = document.getElementById('coinContainer');
 
-        function updateScore() {
-            score += tappingMultiplier;
-            scoreElement.textContent = score + '⭐️';
-            saveGameData();
-            checkMilestones();
-            bigMilestone();
+function updateScore() {
+    score += tappingMultiplier;
+    scoreElement.textContent = score + '⭐️';
+    saveGameData();
+    checkMilestones();
+}
+
+function checkMilestones() {
+    const milestones = [100, 500, 1000, 5000, 10000];
+    if (milestones.includes(score)) {
+        showNotification(`Congratulations! You've reached ${score} stars!`);
+    }
+}
+
+function updateProgress() {
+    const percentage = (tappingPoints / MAX_TAPPING_POINTS) * 100;
+    progressElement.style.width = percentage + '%';
+    tappingPointsElement.textContent = tappingPoints + '/' + MAX_TAPPING_POINTS;
+}
+
+function createTapAnimation(x, y) {
+    const animation = document.createElement('div');
+    animation.className = 'tap-animation';
+    animation.textContent = `+${tappingMultiplier}⭐️`;
+    animation.style.left = `${x}px`;
+    animation.style.top = `${y}px`;
+    document.body.appendChild(animation);
+    setTimeout(() => animation.remove(), 1000);
+}
+
+function createSparkle(x, y) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.left = `${x}px`;
+    sparkle.style.top = `${y}px`;
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 1000);
+}
+
+function tiltCoin() {
+    const tiltAngle = Math.random() * 10 - 5;
+    coinElement.style.transform = `rotateY(${tiltAngle}deg)`;
+    setTimeout(() => {
+        coinElement.style.transform = 'rotateY(0deg)';
+    }, 150);
+}
+
+function flipCoin() {
+    if (!isFlipping) {
+        isFlipping = true;
+        coinElement.style.transform = 'rotateY(360deg)';
+        setTimeout(() => {
+            coinElement.style.transform = 'rotateY(0deg)';
+            isFlipping = false;
+        }, 600);
+    }
+}
+
+coinContainer.addEventListener('click', (e) => {
+    if (tappingPoints > 0) {
+        updateScore();
+        tappingPoints--;
+        updateProgress();
+        createTapAnimation(e.clientX, e.clientY);
+        
+        for (let i = 0; i < 10; i++) {
+            const offsetX = (Math.random() - 0.5) * 100;
+            const offsetY = (Math.random() - 0.5) * 100;
+            createSparkle(e.clientX + offsetX, e.clientY + offsetY);
+        }
+        
+        tapCount++;
+        if (tapCount >= 25) {
+            flipCoin();
+            tapCount = 0;
+        } else {
+            tiltCoin();
         }
 
-        function updateProgress() {
-            const percentage = (tappingPoints / MAX_TAPPING_POINTS) * 100;
-            progressElement.style.width = percentage + '%';
-            tappingPointsElement.textContent = tappingPoints + '/' + MAX_TAPPING_POINTS;
+        tg.HapticFeedback.impactOccurred('light');
+    } else {
+        showNotification("Out of tapping points! Wait for refill or use Full Tank boost.");
+    }
+});
+
+function showPage(pageId) {
+    const pages = ['tapPage', 'boostPage', 'rulesPage'];
+    pages.forEach(page => {
+        const element = document.getElementById(page);
+        if (element) {
+            element.style.display = page === pageId ? 'block' : 'none';
         }
+    });
+    
+    coinContainer.style.display = pageId === 'tapPage' ? 'block' : 'none';
+    document.getElementById('progressBar').style.display = pageId === 'tapPage' ? 'block' : 'none';
+}
 
-        function createTapAnimation(x, y, points) {
-            const animation = document.createElement('div');
-            animation.className = 'tap-animation';
-            animation.textContent = `+${points}⭐️`;
-            animation.style.left = `${x}px`;
-            animation.style.top = `${y}px`;
-            document.body.appendChild(animation);
-            setTimeout(() => animation.remove(), 1000);
+function saveGameData() {
+    const gameData = {
+        score: score.toString(),
+        tappingGuruUses: tappingGuruUses.toString(),
+        fullTankUses: fullTankUses.toString(),
+        lastBoostUseTime: JSON.stringify(lastBoostUseTime),
+        lastRefillTime: Date.now().toString()
+    };
+
+    tg.CloudStorage.setItem('gameData', JSON.stringify(gameData), (error) => {
+        if (error) {
+            console.error('Error saving game data:', error);
+            showNotification('Failed to save game data. Please check your connection.');
         }
+    });
+}
 
-        function createSparkle(x, y) {
-            const sparkle = document.createElement('div');
-            sparkle.className = 'sparkle';
-            sparkle.style.left = `${x}px`;
-            sparkle.style.top = `${y}px`;
-            document.body.appendChild(sparkle);
-            setTimeout(() => sparkle.remove(), 1000);
-        }
+function loadGameData() {
+    tg.CloudStorage.getItem('gameData', (error, value) => {
+        if (!error && value) {
+            try {
+                const gameData = JSON.parse(value);
+                score = parseInt(gameData.score) || 0;
+                tappingGuruUses = parseInt(gameData.tappingGuruUses) || 3;
+                fullTankUses = parseInt(gameData.fullTankUses) || 3;
+                lastBoostUseTime = JSON.parse(gameData.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
+                
+                const lastRefillTime = parseInt(gameData.lastRefillTime) || 0;
+                checkAndRefillTank(lastRefillTime);
 
-        function tiltCoin() {
-            const tiltAngle = Math.random() * 10 - 5;
-            coinElement.style.transform = `rotateY(${tiltAngle}deg)`;
-            setTimeout(() => {
-                coinElement.style.transform = 'rotateY(0deg)';
-            }, 150);
-        }
-
-        function flipCoin() {
-            if (!isFlipping) {
-                isFlipping = true;
-                coinElement.style.transform = 'rotateY(360deg)';
-                setTimeout(() => {
-                    coinElement.style.transform = 'rotateY(0deg)';
-                    isFlipping = false;
-                }, 600);
-            }
-        }
-
-        function createSimpleTapAnimation(x, y) {
-            const animation = document.createElement('div');
-            animation.textContent = '+1⭐️';
-            animation.style.position = 'absolute';
-            animation.style.left = `${x}px`;
-            animation.style.top = `${y}px`;
-            animation.style.fontSize = '24px';
-            animation.style.color = '#ffd700';
-            animation.style.pointerEvents = 'none';
-            document.body.appendChild(animation);
-
-            let opacity = 1;
-            let top = y;
-
-            function animate() {
-                opacity -= 0.02;
-                top -= 1;
-                animation.style.opacity = opacity;
-                animation.style.top = `${top}px`;
-
-                if (opacity > 0) {
-                    requestAnimationFrame(animate);
-                } else {
-                    animation.remove();
-                }
-            }
-
-            requestAnimationFrame(animate);
-        }
-
-        coinElement.addEventListener('click', (e) => {
-            if (tappingPoints > 0) {
                 updateScore();
-                tappingPoints--;
                 updateProgress();
-                createTapAnimation(e.clientX, e.clientY, tappingMultiplier);
-                
-                for (let i = 0; i < 10; i++) {
-                    const offsetX = (Math.random() - 0.5) * 100;
-                    const offsetY = (Math.random() - 0.5) * 100;
-                    createSparkle(e.clientX + offsetX, e.clientY + offsetY);
-                }
-                
-                tapCount++;
-                if (tapCount >= 25) {
-                    flipCoin();
-                    tapCount = 0;
-                } else {
-                    tiltCoin();
-                }
+                updateBoostUses();
+            } catch (e) {
+                console.error('Error parsing game data:', e);
+                showNotification('Failed to load game data. Starting a new game.');
             }
-        });
+        } else {
+            console.error('Error loading game data:', error);
+            showNotification('Failed to load game data. Starting a new game.');
+        }
+    });
+}
 
-        function showPage(pageId) {
-            const pages = ['tapPage', 'boostPage', 'rulesPage'];
-            pages.forEach(page => {
-                const element = document.getElementById(page);
-                if (element) {
-                    element.style.display = page === pageId ? 'block' : 'none';
-                }
-            });
+function activateBoost(boostType) {
+    tg.CloudStorage.getItem('gameData', (error, value) => {
+        if (!error && value) {
+            const gameData = JSON.parse(value);
+            const serverTime = parseInt(gameData.serverTime) || Date.now();
             
-            const coinContainer = document.getElementById('coinContainer');
-            const progressBar = document.getElementById('progressBar');
-            
-            if (pageId === 'tapPage') {
-                coinContainer.style.display = 'block';
-                progressBar.style.display = 'block';
-            } else {
-                coinContainer.style.display = 'none';
-                progressBar.style.display = 'none';
-            }
-        }
-
-        function saveGameData() {
-            tg.CloudStorage.setItems({
-                score: score.toString(),
-                tappingGuruUses: tappingGuruUses.toString(),
-                fullTankUses: fullTankUses.toString(),
-                lastBoostUseTime: JSON.stringify(lastBoostUseTime)
-            }, (error) => {
-                if (error) {
-                    console.error('Error saving game data:', error);
-                } else {
-                    console.log('Game data saved successfully');
-                }
-            });
-        }
-
-        function loadGameData() {
-            tg.CloudStorage.getItems(['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'], (error, result) => {
-                if (!error) {
-                    score = parseInt(result.score) || 0;
-                    tappingGuruUses = parseInt(result.tappingGuruUses) || 3;
-                    fullTankUses = parseInt(result.fullTankUses) || 3;
-                    lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
-                    updateScore(); // This will update the score display
-                    updateBoostUses();
-                } else {
-                    console.error('Error loading game data:', error);
-                }
-            });
-        }
-
-        function activateBoost(boostType) {
-            const now = Date.now();
-            if (now - lastBoostUseTime[boostType] < 24 * 60 * 60 * 1000) {
-                tg.showAlert('This boost is on cooldown. Try again later!');
+            if (serverTime - lastBoostUseTime[boostType] < 24 * 60 * 60 * 1000) {
+                showNotification('This boost is on cooldown. Try again later!');
                 return;
             }
 
             if (boostType === 'tappingGuru' && tappingGuruUses > 0) {
                 tappingMultiplier *= 2;
                 tappingGuruUses--;
+                showNotification('Tapping Guru activated! Double points for 1 minute!');
                 setTimeout(() => {
                     tappingMultiplier /= 2;
-                }, 60000); // 1 minute duration
+                    showNotification('Tapping Guru boost ended.');
+                }, 60000);
             } else if (boostType === 'fullTank' && fullTankUses > 0) {
                 tappingPoints = MAX_TAPPING_POINTS;
                 fullTankUses--;
+                showNotification('Full Tank activated! Tapping points refilled!');
             } else {
-                tg.showAlert('No more uses left for this boost!');
+                showNotification('No more uses left for this boost!');
                 return;
             }
 
-            lastBoostUseTime[boostType] = now;
+            lastBoostUseTime[boostType] = serverTime;
             saveGameData();
             updateProgress();
             updateBoostUses();
-            tg.showAlert('Boost activated!');
+        } else {
+            showNotification('Failed to activate boost. Please try again.');
         }
+    });
+}
 
-        function updateBoostUses() {
-            document.getElementById('tappingGuruUses').textContent = tappingGuruUses;
-            document.getElementById('fullTankUses').textContent = fullTankUses;
-        }
+function updateBoostUses() {
+    document.getElementById('tappingGuruUses').textContent = tappingGuruUses;
+    document.getElementById('fullTankUses').textContent = fullTankUses;
+}
 
-        function initializeApp() {
-            loadGameData();
-            updateProgress();
-            document.getElementById('rulesButton').addEventListener('click', showRules);
-            // Add any other necessary initialization
-        }
+function checkAndRefillTank(lastRefillTime) {
+    const now = Date.now();
+    const timeSinceLastRefill = now - lastRefillTime;
+    const threeHoursInMs = 3 * 60 * 60 * 1000;
 
-        document.addEventListener('DOMContentLoaded', initializeApp);
+    if (timeSinceLastRefill >= threeHoursInMs) {
+        const refillAmount = Math.floor(timeSinceLastRefill / threeHoursInMs) * MAX_TAPPING_POINTS;
+        tappingPoints = Math.min(tappingPoints + refillAmount, MAX_TAPPING_POINTS);
+        updateProgress();
+        showNotification('Your tapping points have been refilled!');
+    }
+}
 
-        // Handle app closing
-        tg.onEvent('viewportChanged', function(isStateStable) {
-            if (!isStateStable) {
-                saveGameData();
-            } else {
-                checkAndRefillTank();
-            }
-        });
+function showNotification(message) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
 
-        function refillTappingPoints() {
-            const now = Date.now();
-            const lastRefillTime = parseInt(localStorage.getItem('lastRefillTime')) || 0;
-            const timeSinceLastRefill = now - lastRefillTime;
-            const threeHoursInMs = 3 * 60 * 60 * 1000;
+function initializeApp() {
+    loadGameData();
+    updateProgress();
+    showPage('tapPage');
+}
 
-            if (timeSinceLastRefill >= threeHoursInMs) {
-                tappingPoints = MAX_TAPPING_POINTS;
-                localStorage.setItem('lastRefillTime', now.toString());
-                updateProgress();
-                saveGameData();
-            }
-        }
+document.addEventListener('DOMContentLoaded', initializeApp);
 
-        function checkAndRefillTank() {
-            refillTappingPoints();
-            updateProgress();
-        }
+tg.onEvent('viewportChanged', function(isStateStable) {
+    if (!isStateStable) {
+        saveGameData();
+    }
+});
     </script>
 </body>
 </html>

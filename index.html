@@ -10,7 +10,13 @@
         body {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             color: #e94560;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         #gameContainer {
@@ -19,38 +25,45 @@
             border-radius: 20px;
             padding: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         #title {
             font-size: 36px;
             font-weight: 700;
-            background: linear-gradient(45deg, #e94560, #0f3460);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 20px;
+            color: #e94560;
         }
 
         #score {
-            font-size: 54px; /* Slightly smaller font size */
+            font-size: 54px;
             font-weight: bold;
-            margin: 10px 0; /* Reduced margin */
+            margin: 10px 0;
             padding: 15px 30px;
             border: 4px solid #ffd700;
             border-radius: 20px;
             background: rgba(255, 215, 0, 0.2);
             animation: pulse 2s infinite;
         }
+
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+
         #coinContainer {
-            width: 280px; /* Slightly smaller width */
-            height: 280px; /* Slightly smaller height */
+            width: 280px;
+            height: 280px;
             perspective: 1000px;
             margin: 20px 0;
         }
+
         #coin {
             width: 100%;
             height: 100%;
@@ -58,8 +71,8 @@
             transition: transform 0.6s;
             transform-style: preserve-3d;
             cursor: pointer;
-            animation: pulse 2s infinite;
         }
+
         #coin .front, #coin .back {
             position: absolute;
             width: 100%;
@@ -73,31 +86,18 @@
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
+
         #coin .front {
             background: linear-gradient(45deg, #ffd700, #ff8c00);
             color: #000000;
         }
+
         #coin .back {
             background: linear-gradient(45deg, #ff8c00, #ffd700);
             color: #000000;
             transform: rotateY(180deg);
         }
-        @keyframes spin {
-            0% { transform: rotateY(0); }
-            100% { transform: rotateY(360deg); }
-        }
-        @keyframes wobble {
-            0% { transform: rotateY(0) rotateX(0); }
-            25% { transform: rotateY(-15deg) rotateX(5deg); }
-            50% { transform: rotateY(0) rotateX(-5deg); }
-            75% { transform: rotateY(15deg) rotateX(5deg); }
-            100% { transform: rotateY(0) rotateX(0); }
-        }
-        #tankInfo {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 18px;
-        }
+
         #progressBar {
             width: 80%;
             height: 30px;
@@ -107,12 +107,14 @@
             overflow: hidden;
             position: relative;
         }
+
         #progress {
             width: 100%;
             height: 100%;
             background-color: #ffd700;
             transition: width 0.5s;
         }
+
         #tappingPoints {
             position: absolute;
             top: 50%;
@@ -121,12 +123,14 @@
             font-weight: bold;
             color: #000;
         }
+
         #pages {
             display: flex;
             justify-content: center;
             width: 100%;
             margin-top: 20px;
         }
+
         .page-button {
             padding: 12px 24px;
             font-size: 20px;
@@ -138,79 +142,9 @@
             margin: 0 10px;
             transition: transform 0.1s;
         }
+
         .page-button:active {
             transform: scale(0.95);
-        }
-        #boostPage {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-        .boost-section {
-            width: 100%;
-            margin: 10px 0;
-        }
-        .boost-section h3 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .boost-button {
-            margin: 10px auto;
-            padding: 15px;
-            font-size: 18px;
-            background: linear-gradient(45deg, #ffd700, #ff8c00);
-            border: none;
-            border-radius: 8px;
-            color: #000000;
-            cursor: pointer;
-            transition: transform 0.2s;
-            width: calc(100% - 40px);
-            max-width: 400px;
-            display: block;
-        }
-        .boost-button:active {
-            transform: scale(0.95);
-        }
-        .tap-animation {
-            position: fixed;
-            font-size: 30px;
-            font-weight: bold;
-            color: #ff0000;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s, transform 0.5s;
-        }
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
-        }
-        .sparkle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: radial-gradient(circle, #fff, #ff0);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: sparkle-fade 1s ease-out forwards, sparkle-move 1s ease-out forwards;
-            transform: rotate(var(--angle));
-        }
-
-        @keyframes sparkle-fade {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        @keyframes sparkle-move {
-            0% { transform: scale(0) rotate(var(--angle)); }
-            100% { transform: scale(1) rotate(var(--angle)) translate(50px, 50px); }
-        }
-
-        #syncIndicator {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            display: none;
         }
     </style>
 </head>
@@ -233,34 +167,16 @@
             <button class="page-button" onclick="showPage('tapPage')">Tap ⭐️</button>
             <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
             <button class="page-button" onclick="showRules()">Rules 📋</button>
-            <button id="syncButton" onclick="manualSync()">Sync Data</button>
-        </div>
-        <div id="boostPage">
-            <div class="boost-section">
-                <h3>Daily Boosts (3 uses per 24h)</h3>
-                <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (2x for 5min) - <span id="tappingGuruUses">3</span> left</button>
-                <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank - <span id="fullTankUses">3</span> left</button>
-            </div>
-            <div class="boost-section">
-                <h3>Purchase Boosts</h3>
-                <button class="boost-button" onclick="purchaseBoost('multitap')">Multitap (5x for 3h) - 500⭐️</button>
-                <button class="boost-button" onclick="purchaseBoost('rechargeSpeed')">3x Recharge Speed (3h) - 2000⭐️</button>
-            </div>
         </div>
     </div>
 
-    <button id="debugButton" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999; padding: 10px;" onclick="debugCloudStorage()">Debug</button>
-
-    <div id="syncIndicator">Syncing...</div>
-
     <script>
-        const tg = window.Telegram.WebApp;
+        let tg = window.Telegram.WebApp;
         tg.expand();
 
         let score = 0;
         let tappingPoints = 2000;
         let tappingMultiplier = 1;
-        let rechargeMultiplier = 1;
         let tappingGuruUses = 3;
         let fullTankUses = 3;
         let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
@@ -269,8 +185,6 @@
         const coinElement = document.getElementById('coin');
         const progressElement = document.getElementById('progress');
         const tappingPointsElement = document.getElementById('tappingPoints');
-        const tappingGuruUsesElement = document.getElementById('tappingGuruUses');
-        const fullTankUsesElement = document.getElementById('fullTankUses');
 
         function updateScore() {
             scoreElement.textContent = score + '⭐️';
@@ -278,163 +192,30 @@
         }
 
         function updateProgress() {
-            const percentage = (tappingPoints / 2000 * 100);
+            const percentage = (tappingPoints / 2000) * 100;
             progressElement.style.width = percentage + '%';
             tappingPointsElement.textContent = tappingPoints + '/2000';
-            progressElement.style.transition = 'width 0.3s ease-out';
         }
 
-        // Flip coin animation
-        let isFlipping = false;
-        function flipCoin() {
-            if (!isFlipping) {
-                isFlipping = true;
-                coinElement.style.animation = 'flip 0.6s ease-out';
-                setTimeout(() => {
-                    coinElement.style.animation = '';
-                    isFlipping = false;
-                }, 600);
-            }
-        }
-
-        @keyframes flip {
-            0% { transform: rotateY(0); }
-            100% { transform: rotateY(720deg); }
-        }
-
-        // Improve sparkle animation
-        function createSparkle(x, y) {
-            const sparkle = document.createElement('div');
-            sparkle.className = 'sparkle';
-            sparkle.style.left = `${x}px`;
-            sparkle.style.top = `${y}px`;
-            sparkle.style.setProperty('--angle', `${Math.random() * 360}deg`);
-            document.body.appendChild(sparkle);
-            setTimeout(() => document.body.removeChild(sparkle), 1000);
-        }
-
-        // Add particle effects
-        function createParticles(x, y) {
-            for (let i = 0; i < 30; i++) {
-                let particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = x + 'px';
-                particle.style.top = y + 'px';
-                particle.style.setProperty('--angle', Math.random() * 360 + 'deg');
-                particle.style.setProperty('--distance', Math.random() * 100 + 50 + 'px');
-                document.body.appendChild(particle);
-                setTimeout(() => particle.remove(), 1000);
-            }
-        }
-
-        let comboCounter = 0;
-        let lastTapTime = 0;
-
-        coinElement.addEventListener('click', (e) => {
+        coinElement.addEventListener('click', () => {
             if (tappingPoints > 0) {
-                const now = Date.now();
-                if (now - lastTapTime < 500) { // 500ms window for combo
-                    comboCounter++;
-                } else {
-                    comboCounter = 0;
-                }
-                lastTapTime = now;
-
-                const pointsGained = Math.pow(2, comboCounter) * tappingMultiplier;
-                score += pointsGained;
+                score += tappingMultiplier;
                 tappingPoints--;
                 updateScore();
                 updateProgress();
-
-                // Complex coin animations
                 flipCoin();
-
-                // Tap animation with sparkles
-                const tapAnimation = document.createElement('div');
-                tapAnimation.className = 'tap-animation';
-                tapAnimation.textContent = '+' + pointsGained + '⭐️';
-                tapAnimation.style.left = `${e.clientX}px`;
-                tapAnimation.style.top = `${e.clientY}px`;
-                document.body.appendChild(tapAnimation);
-
-                // Add sparkles
-                for (let i = 0; i < 20; i++) {
-                    const offsetX = (Math.random() - 0.5) * 100;
-                    const offsetY = (Math.random() - 0.5) * 100;
-                    createSparkle(e.clientX + offsetX, e.clientY + offsetY);
-                }
-
-                // Add particle effects
-                createParticles(e.clientX, e.clientY);
-
-                setTimeout(() => {
-                    tapAnimation.style.opacity = '1';
-                    tapAnimation.style.transform = 'translateY(-50px)';
-                }, 10);
-
-                setTimeout(() => {
-                    tapAnimation.style.opacity = '0';
-                }, 400);
-
-                setTimeout(() => {
-                    document.body.removeChild(tapAnimation);
-                }, 1000);
-
-                // Haptic feedback
-                tg.HapticFeedback.impactOccurred('medium');
             }
         });
 
+        function flipCoin() {
+            coinElement.style.transform = 'rotateY(180deg)';
+            setTimeout(() => {
+                coinElement.style.transform = 'rotateY(0deg)';
+            }, 300);
+        }
+
         function showPage(pageId) {
-            document.getElementById('coinContainer').style.display = pageId === 'tapPage' ? 'block' : 'none';
-            document.getElementById('boostPage').style.display = pageId === 'boostPage' ? 'flex' : 'none';
-        }
-
-        function activateBoost(boostType) {
-            const currentTime = Date.now();
-            if (currentTime - lastBoostUseTime[boostType] < 24 * 60 * 60 * 1000) {
-                if (boostType === 'tappingGuru' && tappingGuruUses > 0) {
-                    tappingGuruUses--;
-                    tappingMultiplier = 2;
-                    setTimeout(() => { tappingMultiplier = 1; }, 300000);
-                    tg.showAlert('Tapping Guru activated for 5 minutes!');
-                    tappingGuruUsesElement.textContent = tappingGuruUses;
-                } else if (boostType === 'fullTank' && fullTankUses > 0) {
-                    fullTankUses--;
-                    tappingPoints = 2000;
-                    updateProgress();
-                    tg.showAlert('Full Tank activated!');
-                    fullTankUsesElement.textContent = fullTankUses;
-                } else {
-                    tg.showAlert('No more uses left for today!');
-                    return;
-                }
-                lastBoostUseTime[boostType] = currentTime;
-            } else {
-                tappingGuruUses = 3;
-                fullTankUses = 3;
-                lastBoostUseTime[boostType] = currentTime;
-                tg.showAlert('Daily uses reset! Activating boost...');
-                activateBoost(boostType); // Recursive call to activate after reset
-            }
-        }
-
-        function purchaseBoost(boostType) {
-            if (boostType === 'multitap' && score >= 500) {
-                score -= 500;
-                tappingMultiplier = 5;
-                setTimeout(() => { tappingMultiplier = 1; }, 10800000);
-                updateScore();
-                tg.showAlert('Multitap activated for 3 hours!');
-            } else if (boostType === 'rechargeSpeed' && score >= 2000) {
-                score -= 2000;
-                rechargeMultiplier = 3;
-                setTimeout(() => { rechargeMultiplier = 1; }, 10800000);
-                updateScore();
-                tg.showAlert('Recharge Speed boosted for 3 hours!');
-            } else {
-                tg.showAlert('Not enough stars to purchase this boost!');
-            }
+            // Implement page switching logic here
         }
 
         function showRules() {
@@ -452,113 +233,28 @@
 
         // Load saved score and boost data
         function loadGameData() {
-            showSyncIndicator();
-            tg.showProgress();
-            robustCloudStorageOperation('getItems', ['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'])
-                .then(result => {
+            tg.CloudStorage.getItems(['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'], (error, result) => {
+                if (!error) {
                     score = parseInt(result.score) || 0;
                     tappingGuruUses = parseInt(result.tappingGuruUses) || 3;
                     fullTankUses = parseInt(result.fullTankUses) || 3;
                     lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
                     updateScore();
-                    updateBoostUses();
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                })
-                .catch(error => {
-                    console.error('Error loading game data:', error);
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                    tg.showAlert('Failed to load game data. Please check your connection and try again.');
-                });
+                    updateProgress();
+                }
+            });
         }
 
-        // Call loadGameData immediately when the script loads
+        // Initialize game
         loadGameData();
-
-        // Save game data
-        function saveGameData() {
-            showSyncIndicator();
-            tg.showProgress();
-            const gameData = {
-                score: score.toString(),
-                tappingGuruUses: tappingGuruUses.toString(),
-                fullTankUses: fullTankUses.toString(),
-                lastBoostUseTime: JSON.stringify(lastBoostUseTime)
-            };
-            robustCloudStorageOperation('setItems', gameData)
-                .then(() => {
-                    console.log('Game data saved successfully');
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                })
-                .catch(error => {
-                    console.error('Error saving game data:', error);
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                    tg.showAlert('Failed to save game data. Please check your connection and try again.');
-                });
-        }
-
-        function updateBoostUses() {
-            tappingGuruUsesElement.textContent = tappingGuruUses;
-            fullTankUsesElement.textContent = fullTankUses;
-        }
-
-        // Recharge tapping points
-        setInterval(() => {
-            if (tappingPoints < 2000) {
-                tappingPoints += 1 * rechargeMultiplier;
-                if (tappingPoints > 2000) tappingPoints = 2000;
-                updateProgress();
-            }
-        }, 5400);
-
-        // Save game data periodically
-        setInterval(saveGameData, 30000);
+        updateProgress();
 
         // Handle app closing
         tg.onEvent('viewportChanged', function(isStateStable) {
             if (!isStateStable) {
-                saveGameData();
+                tg.CloudStorage.setItem('score', score.toString());
             }
         });
-
-        // Add this line to save data when the user leaves the app
-        tg.onEvent('appClosing', saveGameData);
-
-        // Debug function
-        function debugCloudStorage() {
-            tg.showAlert(`Current score: ${score}`);
-            saveGameData()
-                .then(() => robustCloudStorageOperation('getItem', 'score'))
-                .then(loadedScore => {
-                    tg.showAlert(`Current score: ${score}\nLoaded score: ${loadedScore}`);
-                })
-                .catch(error => {
-                    tg.showAlert('Error during debug: ' + error);
-                });
-        }
-
-        // Add event listener to debug button
-        document.getElementById('debugButton').addEventListener('click', debugCloudStorage);
-
-        function manualSync() {
-            showSyncIndicator();
-            tg.showProgress();
-            saveGameData()
-                .then(() => loadGameData())
-                .then(() => {
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                    tg.showAlert('Data synced successfully!');
-                })
-                .catch(error => {
-                    hideSyncIndicator();
-                    tg.hideProgress();
-                    tg.showAlert('Sync failed. Please try again later.');
-                });
-        }
     </script>
 </body>
 </html>

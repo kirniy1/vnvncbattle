@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VNVNC COIN MANIA</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
@@ -19,6 +19,16 @@
             justify-content: center;
             height: 100vh;
             overflow: hidden;
+        }
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            max-width: 390px; /* iPhone 15 width */
+            margin: auto;
         }
         #title {
             font-size: 36px;
@@ -46,14 +56,51 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-        #coin {
+        #coinContainer {
             width: 300px;
             height: 300px;
-            cursor: pointer;
-            transition: transform 0.1s;
+            perspective: 1000px;
+            margin: 20px 0;
         }
-        #coin:active {
-            transform: scale(0.95) rotate(5deg);
+        #coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        #coin .front, #coin .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        #coin .front {
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            color: #000000;
+        }
+        #coin .back {
+            background: linear-gradient(45deg, #ff8c00, #ffd700);
+            color: #000000;
+            transform: rotateY(180deg);
+        }
+        @keyframes spin {
+            0% { transform: rotateY(0); }
+            100% { transform: rotateY(360deg); }
+        }
+        @keyframes wobble {
+            0% { transform: rotateY(0) rotateX(0); }
+            25% { transform: rotateY(-15deg) rotateX(5deg); }
+            50% { transform: rotateY(0) rotateX(-5deg); }
+            75% { transform: rotateY(15deg) rotateX(5deg); }
+            100% { transform: rotateY(0) rotateX(0); }
         }
         #tankInfo {
             text-align: center;
@@ -105,6 +152,14 @@
             align-items: center;
             width: 100%;
         }
+        .boost-section {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .boost-section h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
         .boost-button {
             margin: 10px;
             padding: 15px;
@@ -124,8 +179,8 @@
         .boost-button:active {
             transform: scale(0.95);
         }
-        #tapAnimation {
-            position: absolute;
+        .tap-animation {
+            position: fixed;
             font-size: 30px;
             font-weight: bold;
             color: #ff0000;
@@ -133,42 +188,53 @@
             opacity: 0;
             transition: opacity 0.5s, transform 0.5s;
         }
-        #rulesButton {
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        .sparkle {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 24px;
-            background: none;
-            border: none;
-            color: #ffffff;
-            cursor: pointer;
+            width: 5px;
+            height: 5px;
+            background-color: #ffff00;
+            border-radius: 50%;
+            animation: sparkle 0.5s linear infinite;
         }
     </style>
 </head>
 <body>
-    <div id="title">VNVNC COIN MANIA</div>
-    <div id="score">0⭐️</div>
-    <svg id="coin" viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="95" fill="#ffd700" />
-        <text x="100" y="115" font-size="40" text-anchor="middle" fill="#000000">VNVNC</text>
-    </svg>
-    <div id="tankInfo">Tapping Tank: Refills over time. Tap when full!</div>
-    <div id="progressBar">
-        <div id="progress"></div>
-        <div id="tappingPoints">2000/2000</div>
+    <div id="gameContainer">
+        <div id="title">VNVNC COIN MANIA</div>
+        <div id="score">0⭐️</div>
+        <div id="coinContainer">
+            <div id="coin">
+                <div class="front">VNVNC</div>
+                <div class="back">MANIA</div>
+            </div>
+        </div>
+        <div id="tankInfo">Tapping Tank: Refills over time. Tap when full!</div>
+        <div id="progressBar">
+            <div id="progress"></div>
+            <div id="tappingPoints">2000/2000</div>
+        </div>
+        <div id="pages">
+            <button class="page-button" onclick="showPage('tapPage')">Tap ⭐️</button>
+            <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
+            <button class="page-button" onclick="showRules()">Rules 📋</button>
+        </div>
+        <div id="boostPage">
+            <div class="boost-section">
+                <h3>Daily Boosts (3 uses per 24h)</h3>
+                <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (2x for 5min) - <span id="tappingGuruUses">3</span> left</button>
+                <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank - <span id="fullTankUses">3</span> left</button>
+            </div>
+            <div class="boost-section">
+                <h3>Purchase Boosts</h3>
+                <button class="boost-button" onclick="purchaseBoost('multitap')">Multitap (5x for 3h) - 500⭐️</button>
+                <button class="boost-button" onclick="purchaseBoost('rechargeSpeed')">3x Recharge Speed (3h) - 2000⭐️</button>
+            </div>
+        </div>
     </div>
-    <div id="pages">
-        <button class="page-button" onclick="showPage('tapPage')">Tap ⭐️</button>
-        <button class="page-button" onclick="showPage('boostPage')">Boost 🚀</button>
-    </div>
-    <div id="boostPage">
-        <button class="boost-button" onclick="activateBoost('tappingGuru')">Tapping Guru (2x for 5min)</button>
-        <button class="boost-button" onclick="activateBoost('fullTank')">Full Tank</button>
-        <button class="boost-button" onclick="purchaseBoost('multitap')">Multitap (5x for 3h) - 500⭐️</button>
-        <button class="boost-button" onclick="purchaseBoost('rechargeSpeed')">3x Recharge Speed (3h) - 2000⭐️</button>
-    </div>
-    <div id="tapAnimation">+1⭐️</div>
-    <button id="rulesButton" onclick="showRules()">📋</button>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -180,12 +246,14 @@
         let rechargeMultiplier = 1;
         let tappingGuruUses = 3;
         let fullTankUses = 3;
+        let lastBoostUseTime = { tappingGuru: 0, fullTank: 0 };
 
         const scoreElement = document.getElementById('score');
         const coinElement = document.getElementById('coin');
         const progressElement = document.getElementById('progress');
         const tappingPointsElement = document.getElementById('tappingPoints');
-        const tapAnimationElement = document.getElementById('tapAnimation');
+        const tappingGuruUsesElement = document.getElementById('tappingGuruUses');
+        const fullTankUsesElement = document.getElementById('fullTankUses');
 
         function updateScore() {
             scoreElement.textContent = score + '⭐️';
@@ -196,8 +264,6 @@
             const percentage = (tappingPoints / 2000 * 100);
             progressElement.style.width = percentage + '%';
             tappingPointsElement.textContent = tappingPoints + '/2000';
-            
-            // Animated depleting effect
             progressElement.style.transition = 'width 0.3s ease-out';
         }
 
@@ -209,44 +275,78 @@
                 updateScore();
                 updateProgress();
 
-                // Coin tilt animation
-                coinElement.style.transform = 'rotate(5deg)';
-                setTimeout(() => { coinElement.style.transform = 'rotate(0deg)'; }, 100);
-
-                // Tap animation
-                const rect = coinElement.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                tapAnimationElement.style.left = `${x}px`;
-                tapAnimationElement.style.top = `${y}px`;
-                tapAnimationElement.textContent = '+' + pointsGained + '⭐️';
-                tapAnimationElement.style.opacity = '1';
-                tapAnimationElement.style.transform = 'translateY(-20px)';
+                // Complex coin animations
+                coinElement.style.animation = 'spin 0.5s linear, wobble 0.5s ease-in-out';
                 setTimeout(() => {
-                    tapAnimationElement.style.opacity = '0';
-                    tapAnimationElement.style.transform = 'translateY(0)';
+                    coinElement.style.animation = '';
                 }, 500);
 
+                // Tap animation with sparkles
+                const tapAnimation = document.createElement('div');
+                tapAnimation.className = 'tap-animation';
+                tapAnimation.textContent = '+' + pointsGained + '⭐️';
+                tapAnimation.style.left = `${e.clientX}px`;
+                tapAnimation.style.top = `${e.clientY}px`;
+                document.body.appendChild(tapAnimation);
+
+                // Add sparkles
+                for (let i = 0; i < 5; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.style.left = `${Math.random() * 40 - 20}px`;
+                    sparkle.style.top = `${Math.random() * 40 - 20}px`;
+                    tapAnimation.appendChild(sparkle);
+                }
+
+                setTimeout(() => {
+                    tapAnimation.style.opacity = '1';
+                    tapAnimation.style.transform = 'translateY(-50px)';
+                }, 10);
+
+                setTimeout(() => {
+                    tapAnimation.style.opacity = '0';
+                }, 400);
+
+                setTimeout(() => {
+                    document.body.removeChild(tapAnimation);
+                }, 1000);
+
                 // Haptic feedback
-                tg.HapticFeedback.impactOccurred('light');
+                tg.HapticFeedback.impactOccurred('medium');
             }
         });
 
         function showPage(pageId) {
+            document.getElementById('coinContainer').style.display = pageId === 'tapPage' ? 'block' : 'none';
             document.getElementById('boostPage').style.display = pageId === 'boostPage' ? 'flex' : 'none';
         }
 
         function activateBoost(boostType) {
-            if (boostType === 'tappingGuru' && tappingGuruUses > 0) {
-                tappingGuruUses--;
-                tappingMultiplier = 2;
-                setTimeout(() => { tappingMultiplier = 1; }, 300000);
-                tg.showAlert('Tapping Guru activated for 5 minutes!');
-            } else if (boostType === 'fullTank' && fullTankUses > 0) {
-                fullTankUses--;
-                tappingPoints = 2000;
-                updateProgress();
-                tg.showAlert('Full Tank activated!');
+            const currentTime = Date.now();
+            if (currentTime - lastBoostUseTime[boostType] < 24 * 60 * 60 * 1000) {
+                if (boostType === 'tappingGuru' && tappingGuruUses > 0) {
+                    tappingGuruUses--;
+                    tappingMultiplier = 2;
+                    setTimeout(() => { tappingMultiplier = 1; }, 300000);
+                    tg.showAlert('Tapping Guru activated for 5 minutes!');
+                    tappingGuruUsesElement.textContent = tappingGuruUses;
+                } else if (boostType === 'fullTank' && fullTankUses > 0) {
+                    fullTankUses--;
+                    tappingPoints = 2000;
+                    updateProgress();
+                    tg.showAlert('Full Tank activated!');
+                    fullTankUsesElement.textContent = fullTankUses;
+                } else {
+                    tg.showAlert('No more uses left for today!');
+                    return;
+                }
+                lastBoostUseTime[boostType] = currentTime;
+            } else {
+                tappingGuruUses = 3;
+                fullTankUses = 3;
+                lastBoostUseTime[boostType] = currentTime;
+                tg.showAlert('Daily uses reset! Activating boost...');
+                activateBoost(boostType); // Recursive call to activate after reset
             }
         }
 
@@ -268,23 +368,45 @@
             }
         }
 
-        function showRules() {
+       function showRules() {
             tg.showAlert('VNVNC COIN MANIA Rules:\n\n' +
                 '1. Tap the coin to earn stars.\n' +
                 '2. The Tapping Tank refills over time.\n' +
-                '3. Use boosts to increase your star earning rate.\n' +
-                '4. Daily boosts are free and refresh every 24 hours.\n' +
-                '5. Purchase powerful boosts with your earned stars.\n' +
+                '3. Use daily boosts (3 times per 24h) to increase your earning rate.\n' +
+                '4. Purchase powerful boosts with your earned stars.\n' +
+                '5. Daily boosts reset every 24 hours.\n' +
                 '6. Compete with friends for the highest score!');
         }
 
-        // Load saved score
-        tg.CloudStorage.getItem('score', (error, value) => {
-            if (!error && value) {
-                score = parseInt(value);
-                updateScore();
-            }
-        });
+        // Load saved score and boost data
+        function loadGameData() {
+            tg.CloudStorage.getItems(['score', 'tappingGuruUses', 'fullTankUses', 'lastBoostUseTime'], (error, result) => {
+                if (!error) {
+                    score = parseInt(result.score) || 0;
+                    tappingGuruUses = parseInt(result.tappingGuruUses) || 3;
+                    fullTankUses = parseInt(result.fullTankUses) || 3;
+                    lastBoostUseTime = JSON.parse(result.lastBoostUseTime) || { tappingGuru: 0, fullTank: 0 };
+                    updateScore();
+                    updateBoostUses();
+                }
+            });
+        }
+
+        // Save game data
+        function saveGameData() {
+            const gameData = {
+                score: score.toString(),
+                tappingGuruUses: tappingGuruUses.toString(),
+                fullTankUses: fullTankUses.toString(),
+                lastBoostUseTime: JSON.stringify(lastBoostUseTime)
+            };
+            tg.CloudStorage.setItems(gameData);
+        }
+
+        function updateBoostUses() {
+            tappingGuruUsesElement.textContent = tappingGuruUses;
+            fullTankUsesElement.textContent = fullTankUses;
+        }
 
         // Recharge tapping points
         setInterval(() => {
@@ -295,13 +417,20 @@
             }
         }, 5400);
 
-        // Save score periodically
-        setInterval(() => {
-            tg.CloudStorage.setItem('score', score.toString());
-        }, 30000);
+        // Save game data periodically
+        setInterval(saveGameData, 30000);
 
-        // Initial update
+        // Initialize game
+        loadGameData();
         updateProgress();
-    </script>
-</body>
+
+        // Handle app closing
+        tg.onEvent('viewportChanged', function(isStateStable) {
+            if (!isStateStable) {
+                saveGameData();
+            }
+        });
+        </script>
+        </body>
 </html>
+</antArtifact>

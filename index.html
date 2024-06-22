@@ -324,13 +324,15 @@ function connectWebSocket() {
     
     ws.onopen = () => {
         console.log('WebSocket connected');
+        ws.send(JSON.stringify({ type: 'getScore' }));
     };
     
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.type === 'scoreUpdate') {
+        if (data.type === 'initScore' || data.type === 'scoreUpdate') {
             score = data.score;
             scoreElement.textContent = score + '⭐️';
+            console.log('Score updated:', score);
         }
     };
     
@@ -342,71 +344,12 @@ function connectWebSocket() {
 
 async function updateScore() {
     score += tappingMultiplier;
-    scoreElement.textContent = score + '⭐️';
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'updateScore', score: score }));
     } else {
-        await updateScoreWithBot(score);
+        console.error('WebSocket is not open. Score update failed.');
     }
     checkMilestones();
-}
-
-async function updateScoreWithBot(newScore) {
-    const chatId = tg.initDataUnsafe.user.id;
-    try {
-        const response = await fetch('https://api.telegram.org/bot7253153475:AAFYHcH9qmD-0m-t8nl-f71GbRpzbTDwdys/sendMessage', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: `/setscore ${newScore}`
-            }),
-        });
-        const data = await response.json();
-        if (data.ok) {
-            console.log('Score updated successfully');
-            return newScore;
-        } else {
-            console.error('Failed to update score:', data.description);
-            showNotification('Не удалось обновить счет. Попробуйте еще раз.');
-            return null;
-        }
-    } catch (error) {
-        console.error('Error updating score:', error);
-        showNotification('Ошибка при обновлении счета. Проверьте подключение.');
-        return null;
-    }
-}
-
-async function fetchCurrentScore() {
-    const chatId = tg.initDataUnsafe.user.id;
-    try {
-        const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: {
-                    chat: { id: chatId },
-                    text: '/score'
-                }
-            })
-        });
-        const data = await response.json();
-        if (data.ok) {
-            console.log('Score fetched successfully:', data.result);
-            return parseInt(data.result.split(': ')[1]);
-        } else {
-            console.error('Failed to fetch score:', data.description);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error fetching score:', error);
-        return null;
-    }
 }
 
 function checkMilestones() {
@@ -574,16 +517,6 @@ function showNotification(message) {
 
 async function initializeApp() {
     connectWebSocket();
-    const currentScore = await fetchCurrentScore();
-    if (currentScore !== null) {
-        score = currentScore;
-        scoreElement.textContent = score + '⭐️';
-        console.log('Initial score fetched:', score);
-    } else {
-        score = 0;
-        console.log('Failed to get initial score or new user. Starting at 0.');
-    }
-    scoreElement.textContent = score + '⭐️';
     await fetchBoostData();
     updateProgress();
     showPage('tapPage');
@@ -622,8 +555,6 @@ tg.onEvent('viewportChanged', function(isStateStable) {
     if (!isStateStable) {
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'updateScore', score: score }));
-        } else {
-            updateScoreWithBot(score);
         }
     }
 });

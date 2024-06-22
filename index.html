@@ -380,7 +380,197 @@ async function updateScoreWithBot(newScore) {
     }
 }
 
-// Keep all other existing functions (fetchCurrentScore, checkMilestones, updateProgress, createTapAnimation, createSparkle, tiltCoin, flipCoin, showPage, activateBoost, updateBoostUses, fetchBoostData, checkAndRefillTank, showNotification) unchanged
+async function fetchCurrentScore() {
+    const chatId = tg.initDataUnsafe.user.id;
+    try {
+        const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: {
+                    chat: { id: chatId },
+                    text: '/score'
+                }
+            })
+        });
+        const data = await response.json();
+        if (data.ok) {
+            console.log('Score fetched successfully:', data.result);
+            return parseInt(data.result.split(': ')[1]);
+        } else {
+            console.error('Failed to fetch score:', data.description);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching score:', error);
+        return null;
+    }
+}
+
+function checkMilestones() {
+    const milestones = [100, 500, 1000, 5000, 10000];
+    if (milestones.includes(score)) {
+        showNotification(`Поздравляем! Вы достигли ${score} звезд!`);
+    }
+}
+
+function updateProgress() {
+    const percentage = (tappingPoints / MAX_TAPPING_POINTS) * 100;
+    progressElement.style.width = percentage + '%';
+    tappingPointsElement.textContent = tappingPoints + '/' + MAX_TAPPING_POINTS;
+}
+
+function createTapAnimation(x, y) {
+    const animation = document.createElement('div');
+    animation.className = 'tap-animation';
+    animation.textContent = `+${tappingMultiplier}⭐️`;
+    animation.style.left = `${x}px`;
+    animation.style.top = `${y}px`;
+    document.body.appendChild(animation);
+    setTimeout(() => animation.remove(), 1000);
+}
+
+function createSparkle(x, y) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.left = `${x}px`;
+    sparkle.style.top = `${y}px`;
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 1000);
+}
+
+function tiltCoin() {
+    const tiltAngle = Math.random() * 10 - 5;
+    coinElement.style.transition = 'transform 0.1s';
+    coinElement.style.transform = `rotateY(${tiltAngle}deg) rotateX(${tiltAngle}deg)`;
+    setTimeout(() => {
+        coinElement.style.transition = 'transform 0.3s';
+        coinElement.style.transform = 'rotateY(0deg) rotateX(0deg)';
+    }, 100);
+}
+
+function flipCoin() {
+    if (!isFlipping) {
+        isFlipping = true;
+        coinElement.style.transition = 'transform 0.6s';
+        coinElement.style.transform = 'rotateY(360deg)';
+        setTimeout(() => {
+            coinElement.style.transition = 'transform 0.3s';
+            coinElement.style.transform = 'rotateY(0deg)';
+            isFlipping = false;
+        }, 600);
+    }
+}
+
+function showPage(pageId) {
+    const pages = ['tapPage', 'boostPage', 'rulesPage'];
+    pages.forEach(page => {
+        const element = document.getElementById(page);
+        if (element) {
+            element.style.display = page === pageId ? 'block' : 'none';
+        }
+    });
+    
+    coinContainer.style.display = pageId === 'tapPage' ? 'block' : 'none';
+    document.getElementById('progressBar').style.display = pageId === 'tapPage' ? 'block' : 'none';
+}
+
+async function activateBoost(boostType) {
+    try {
+        const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: {
+                    chat: { id: tg.initDataUnsafe.user.id },
+                    text: `/useboost ${boostType}`
+                }
+            }),
+        });
+        const data = await response.json();
+        if (data.ok) {
+            showNotification(data.result);
+            if (data.result.includes('successfully')) {
+                if (boostType === 'tapping_guru') {
+                    tappingMultiplier *= 2;
+                    setTimeout(() => {
+                        tappingMultiplier /= 2;
+                        showNotification('Буст Гуру тапа закончился.');
+                    }, 60000);
+                } else if (boostType === 'full_tank') {
+                    tappingPoints = MAX_TAPPING_POINTS;
+                    updateProgress();
+                }
+                await fetchBoostData();
+            }
+        } else {
+            showNotification('Не удалось активировать буст. Попробуйте еще раз.');
+        }
+    } catch (error) {
+        console.error('Error activating boost:', error);
+        showNotification('Ошибка при активации буста. Проверьте подключение.');
+    }
+}
+
+function updateBoostUses() {
+    document.getElementById('tappingGuruUses').textContent = tappingGuruUses;
+    document.getElementById('fullTankUses').textContent = fullTankUses;
+}
+
+async function fetchBoostData() {
+    try {
+        const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: {
+                    chat: { id: tg.initDataUnsafe.user.id },
+                    text: '/getboosts'
+                }
+            }),
+        });
+        const data = await response.json();
+        if (data.ok) {
+            const boostData = JSON.parse(data.result.split(': ')[1]);
+            tappingGuruUses = boostData.tapping_guru_uses;
+            fullTankUses = boostData.full_tank_uses;
+            lastBoostUseTime = JSON.parse(boostData.last_boost_use_time);
+            updateBoostUses();
+        } else {
+            console.error('Failed to fetch boost data:', data.description);
+        }
+    } catch (error) {
+        console.error('Error fetching boost data:', error);
+    }
+}
+
+function checkAndRefillTank(lastRefillTime) {
+    const now = Date.now();
+    const timeSinceLastRefill = now - lastRefillTime;
+    const threeHoursInMs = 3 * 60 * 60 * 1000;
+
+    if (timeSinceLastRefill >= threeHoursInMs) {
+        const refillAmount = Math.floor(timeSinceLastRefill / threeHoursInMs) * MAX_TAPPING_POINTS;
+        tappingPoints = Math.min(tappingPoints + refillAmount, MAX_TAPPING_POINTS);
+        updateProgress();
+        showNotification('Ваши очки тапа были пополнены!');
+    }
+}
+
+function showNotification(message) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
 
 async function initializeApp() {
     connectWebSocket();

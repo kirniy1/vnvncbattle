@@ -328,18 +328,23 @@ function connectWebSocket() {
         ws.send(JSON.stringify({ type: 'getScore' }));
     };
     
-    ws.onmessage = (event) => {
-        console.log('Received WebSocket message:', event.data);
-        const data = JSON.parse(event.data);
-        if (data.type === 'initScore' || data.type === 'scoreUpdate') {
-            updateScoreDisplay(data.score);
-        }
-    };
+   ws.onmessage = (event) => {
+    console.log('Received WebSocket message:', event.data);
+    const data = JSON.parse(event.data);
+    if (data.type === 'initData' || data.type === 'dataUpdate') {
+        updateScoreDisplay(data.score);
+        updateTappingPointsDisplay(data.tappingPoints);
+    } else if (data.type === 'scoreUpdate') {
+        updateScoreDisplay(data.score);
+    } else if (data.type === 'tappingPointsUpdate') {
+        updateTappingPointsDisplay(data.tappingPoints);
+    }
+};
     
     ws.onclose = () => {
-        console.log('WebSocket disconnected. Reconnecting...');
-        setTimeout(connectWebSocket, 1000);
-    };
+    console.log('WebSocket disconnected. Reconnecting...');
+    setTimeout(connectWebSocket, 1000);
+};
 
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
@@ -354,7 +359,6 @@ function updateScoreDisplay(newScore) {
 
 async function updateScore() {
     score += tappingMultiplier;
-    updateScoreDisplay(score);
     if (ws && ws.readyState === WebSocket.OPEN) {
         console.log('Sending score update:', score);
         ws.send(JSON.stringify({ type: 'updateScore', score: score }));
@@ -362,6 +366,7 @@ async function updateScore() {
         console.error('WebSocket is not open. Score update failed.');
         await updateScoreHTTP(score);
     }
+    updateScoreDisplay(score);
     checkMilestones();
 }
 
@@ -408,10 +413,16 @@ async function fetchScoreHTTP() {
         if (data.ok) {
             const fetchedScore = parseInt(data.result.split(': ')[1]);
             updateScoreDisplay(fetchedScore);
+            score = fetchedScore; // Update the global score variable
         }
     } catch (error) {
         console.error('Error fetching score:', error);
     }
+}
+        function updateTappingPointsDisplay(newPoints) {
+    tappingPoints = parseInt(newPoints);
+    updateProgress();
+    console.log('Tapping points updated:', tappingPoints);
 }
 
 function checkMilestones() {
@@ -579,13 +590,21 @@ function showNotification(message) {
 
 async function initializeApp() {
     connectWebSocket();
-    // Fallback to HTTP if WebSocket doesn't update score within 3 seconds
-    setTimeout(() => {
-        if (score === 0) {
-            console.log('WebSocket did not update score, falling back to HTTP');
+    // Wait for WebSocket to connect or timeout after 3 seconds
+    await new Promise(resolve => {
+        const timeout = setTimeout(() => {
+            console.log('WebSocket connection timed out, falling back to HTTP');
             fetchScoreHTTP();
-        }
-    }, 3000);
+            resolve();
+        }, 3000);
+
+        ws.onopen = () => {
+            clearTimeout(timeout);
+            ws.send(JSON.stringify({ type: 'getScore' }));
+            resolve();
+        };
+    });
+
     await fetchBoostData();
     updateProgress();
     showPage('tapPage');

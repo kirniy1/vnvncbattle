@@ -359,18 +359,20 @@ function updateScoreDisplay(newScore) {
 
 async function updateScore() {
     score += tappingMultiplier;
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        console.log('Sending score update:', score);
-        ws.send(JSON.stringify({ type: 'updateScore', score: score }));
-    } else {
-        console.error('WebSocket is not open. Score update failed.');
-        await updateScoreHTTP(score);
-    }
+    tappingPoints = Math.max(0, tappingPoints - 1);  // Ensure tappingPoints doesn't go below 0
     updateScoreDisplay(score);
+    updateProgress();
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('Sending score and tapping points update:', score, tappingPoints);
+        ws.send(JSON.stringify({ type: 'updateScoreAndPoints', score: score, tappingPoints: tappingPoints }));
+    } else {
+        console.error('WebSocket is not open. Update failed.');
+        await updateScoreHTTP(score, tappingPoints);
+    }
     checkMilestones();
 }
 
-async function updateScoreHTTP(newScore) {
+async function updateScoreHTTP(newScore, newTappingPoints) {
     try {
         const response = await fetch('https://sunrise-tundra-glass.glitch.me/bot', {
             method: 'POST',
@@ -380,18 +382,18 @@ async function updateScoreHTTP(newScore) {
             body: JSON.stringify({
                 message: {
                     chat: { id: tg.initDataUnsafe.user.id },
-                    text: `/setscore ${newScore}`
+                    text: `/setscore ${newScore} ${newTappingPoints}`
                 }
             })
         });
         const data = await response.json();
         if (data.ok) {
-            console.log('Score updated via HTTP:', newScore);
+            console.log('Score and tapping points updated via HTTP:', newScore, newTappingPoints);
         } else {
-            console.error('Failed to update score via HTTP:', data.description);
+            console.error('Failed to update score and tapping points via HTTP:', data.description);
         }
     } catch (error) {
-        console.error('Error updating score via HTTP:', error);
+        console.error('Error updating score and tapping points via HTTP:', error);
     }
 }
 

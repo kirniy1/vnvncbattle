@@ -387,7 +387,7 @@ function updateScoreDisplay(newScore) {
 }
 
 function updateTappingPointsDisplay(newPoints) {
-    tappingPoints = Math.min(tappingPoints, parseInt(newPoints));
+    tappingPoints = parseInt(newPoints);
     updateProgress();
     console.log('Tapping points updated:', tappingPoints);
 }
@@ -512,12 +512,10 @@ async function performDailyCheckin() {
     const data = await response.json();
     if (data.ok) {
       showNotification(data.result);
-      tappingPoints += 5000;
-      updateTappingPointsDisplay(tappingPoints);
       lastDailyCheckin = Date.now();
       updateDailyCheckinButton();
     } else {
-      showNotification('Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
+      showNotification(data.error || 'Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
     }
   } catch (error) {
     console.error('Error performing daily check-in:', error);

@@ -120,9 +120,9 @@
         }
 
         @keyframes coinPress {
-            0% { transform: scale(1) rotateX(0); }
-            50% { transform: scale(0.95) rotateX(20deg) translateY(10px); }
-            100% { transform: scale(1) rotateX(0); }
+            0% { transform: scale(1) rotateX(0) rotateY(0); }
+            50% { transform: scale(0.95) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(10px); }
+            100% { transform: scale(1) rotateX(0) rotateY(0); }
         }
 
         #progressBar {
@@ -195,7 +195,7 @@
             overflow-y: auto;
         }
 
-        #bonusTitle, #rulesTitle {
+        #bonusTitle {
             font-size: 24px;
             text-align: center;
             margin-bottom: 20px;
@@ -224,6 +224,12 @@
         #dailyCheckinButton:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        #rulesPage h2 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         #rulesPage ol {
@@ -263,6 +269,25 @@
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-50px); }
         }
+
+        .firework {
+            position: fixed;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: explode 1s ease-out forwards, twinkle 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(20); opacity: 0; }
+        }
+
+        @keyframes twinkle {
+            from { opacity: 1; }
+            to { opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
@@ -291,19 +316,19 @@
         </div>
     </div>
     <div id="bonusPage">
-        <div id="bonusTitle">Daily Check-in</div>
-        <button id="dailyCheckinButton">Get 5000⭐️</button>
-        <button class="page-button" onclick="showPage('mainPage')">Return</button>
+        <div id="bonusTitle">Ежедневный чекин</div>
+        <button id="dailyCheckinButton">Получить 5000⭐️</button>
+        <button class="page-button" onclick="showPage('mainPage')">Назад</button>
     </div>
     <div id="rulesPage">
-        <h2 id="rulesTitle">Rules VNVNC COIN MANIA</h2>
+        <h2>Правила VNVNC COIN MANIA</h2>
         <ol>
-            <li>Tap the coin to earn stars.</li>
-            <li>Use daily check-in to get 5000 tapping points.</li>
-            <li>Tapping points accumulate without an upper limit.</li>
-            <li>Wait for announcements from VNVNC about using stars!</li>
+            <li>Тапай на монетку, чтобы заработать ⭐️</li>
+            <li>Используйте ежедневный чекин, чтобы получить 5000 очков тапа.</li>
+            <li>Запас ⭐️ для собирания пополняется только через него.</li>
+            <li>Ждите анонсов от VNVNC об обмене ⭐️!</li>
         </ol>
-        <button class="page-button" onclick="showPage('mainPage')">Return</button>
+        <button class="page-button" onclick="showPage('mainPage')">Назад</button>
     </div>
     <div id="notification"></div>
 </body>
@@ -340,7 +365,7 @@ function connectWebSocket() {
         if (data.type === 'initData' || data.type === 'dataUpdate') {
             updateScoreDisplay(data.score);
             updateTappingPointsDisplay(data.tappingPoints);
-            lastDailyCheckin = data.lastDailyCheckin ? new Date(data.lastDailyCheckin) : 0;
+            lastDailyCheckin = data.lastDailyCheckin || 0;
             updateDailyCheckinButton();
         }
     };
@@ -362,7 +387,7 @@ function updateScoreDisplay(newScore) {
 }
 
 function updateTappingPointsDisplay(newPoints) {
-    tappingPoints = parseInt(newPoints);
+    tappingPoints = Math.min(tappingPoints, parseInt(newPoints));
     updateProgress();
     console.log('Tapping points updated:', tappingPoints);
 }
@@ -419,7 +444,7 @@ async function updateScoreHTTP(newScore, newTappingPoints) {
 function checkMilestones() {
     const milestones = [100, 500, 1000, 5000, 10000];
     if (milestones.includes(score)) {
-        showNotification(`Congratulations! You've reached ${score} stars!`);
+        showNotification(`Поздравляем! Вы достигли ${score} звезд!`);
     }
 }
 
@@ -439,7 +464,17 @@ function createTapAnimation(x, y) {
     setTimeout(() => animation.remove(), 1000);
 }
 
-function animateCoin() {
+function animateCoin(x, y) {
+    const rect = coinContainer.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const tiltX = (y - centerY) / (rect.height / 2) * 20;
+    const tiltY = (x - centerX) / (rect.width / 2) * 20;
+    
+    coinElement.style.setProperty('--tilt-x', `${tiltX}deg`);
+    coinElement.style.setProperty('--tilt-y', `${tiltY}deg`);
+    
     coinElement.classList.add('tapped');
     setTimeout(() => coinElement.classList.remove('tapped'), 300);
 }
@@ -479,31 +514,31 @@ async function performDailyCheckin() {
             showNotification(data.result);
             tappingPoints += 5000;
             updateTappingPointsDisplay(tappingPoints);
-            lastDailyCheckin = new Date();
+            lastDailyCheckin = Date.now();
             updateDailyCheckinButton();
         } else {
-            showNotification('Failed to perform daily check-in. Please try again later.');
+            showNotification('Не удалось выполнить ежедневный чекин. Пожалуйста, попробуйте позже.');
         }
     } catch (error) {
         console.error('Error performing daily check-in:', error);
-        showNotification('Error performing daily check-in. Please check your connection.');
+        showNotification('Ошибка при выполнении ежедневного чекина. Пожалуйста, проверьте подключение.');
     }
 }
 
 function updateDailyCheckinButton() {
-    const now = new Date();
+    const now = Date.now();
     const timeSinceLastCheckin = now - lastDailyCheckin;
     const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
     if (timeSinceLastCheckin >= cooldownPeriod) {
         dailyCheckinButton.disabled = false;
-        dailyCheckinButton.textContent = 'Get 5000⭐️';
+        dailyCheckinButton.textContent = 'Получить 5000⭐️';
     } else {
         dailyCheckinButton.disabled = true;
         const timeLeft = cooldownPeriod - timeSinceLastCheckin;
         const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
         const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-        dailyCheckinButton.textContent = `Available in ${hoursLeft}h ${minutesLeft}m`;
+        dailyCheckinButton.textContent = `Доступно через ${hoursLeft}ч ${minutesLeft}м`;
     }
 }
 
@@ -534,6 +569,7 @@ async function initializeApp() {
 
     updateProgress();
     showPage('mainPage');
+    updateDailyCheckinButton();
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
@@ -543,10 +579,17 @@ coinContainer.addEventListener('click', async (e) => {
         await updateScore();
         updateProgress();
         createTapAnimation(e.clientX, e.clientY);
-        animateCoin();
+        animateCoin(e.clientX, e.clientY);
+        
+        for (let i = 0; i < 10; i++) {
+            const offsetX = (Math.random() - 0.5) * 100;
+            const offsetY = (Math.random() - 0.5) * 100;
+            createSparkle(e.clientX + offsetX, e.clientY + offsetY);
+        }
+
         tg.HapticFeedback.impactOccurred('medium');
     } else {
-        showNotification("No tapping points left! Wait for daily check-in.");
+        showNotification("Нет очков тапа! Дождитесь ежедневного чекина.");
     }
 });
 
@@ -561,6 +604,16 @@ tg.onEvent('viewportChanged', function(isStateStable) {
         }
     }
 });
+
+function createSparkle(x, y) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'firework';
+    sparkle.style.left = `${x}px`;
+    sparkle.style.top = `${y}px`;
+    sparkle.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 1000);
+}
 </script>
 </body>
 </html>

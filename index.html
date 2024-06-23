@@ -7,69 +7,78 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             background-color: #000000;
             color: #ffffff;
             font-family: 'Orbitron', sans-serif;
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
         }
 
         #gameContainer {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 5vw;
-            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
-            width: 90%;
-            max-width: 400px;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            padding: 3vh 3vw;
         }
 
         #title {
-            font-size: clamp(20px, 5vw, 28px);
+            font-size: clamp(28px, 8vw, 48px);
             font-weight: 700;
             text-align: center;
-            margin-bottom: 3vh;
             color: #ff0000;
             padding: 2vh 3vw;
             border-radius: 10px;
             background: linear-gradient(45deg, #4a0000, #8a0000);
             box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2vh;
+            width: 100%;
         }
 
         #scoreContainer {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 3vh;
+            margin-bottom: 2vh;
+            width: 100%;
         }
 
         #score {
             font-family: 'Roboto', sans-serif;
-            font-size: clamp(24px, 6vw, 36px);
+            font-size: clamp(32px, 10vw, 64px);
             font-weight: bold;
-            padding: 2vh 3vw;
-            border: 3px solid #ffd700;
-            border-radius: 15px;
+            padding: 2vh 4vw;
+            border: 5px solid #ffd700;
+            border-radius: 20px;
             background: rgba(255, 215, 0, 0.2);
             color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
         }
 
         #coinContainer {
-            width: 70vw;
-            height: 70vw;
-            max-width: 300px;
-            max-height: 300px;
+            width: 60vmin;
+            height: 60vmin;
             perspective: 1000px;
-            margin: 5vh auto;
+            margin: 2vh auto;
             cursor: pointer;
         }
 
@@ -81,12 +90,46 @@
             transition: transform 0.3s;
         }
 
+        #coin .front, #coin .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(255,215,0,0.7);
+            overflow: hidden;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #ffa500);
+        }
+
+        #coin .front::before, #coin .back::before {
+            content: '';
+            position: absolute;
+            width: 92%;
+            height: 92%;
+            border-radius: 50%;
+            border: 8px solid #ffd700;
+            box-shadow: inset 0 0 30px rgba(255,215,0,0.7);
+        }
+
+        #coin .back {
+            transform: rotateY(180deg);
+        }
+
+        #coin .logo {
+            width: 75%;
+            height: 75%;
+            object-fit: contain;
+        }
+
         #progressBar {
             width: 90%;
-            height: 4vh;
+            height: 5vh;
             background-color: #333;
-            border-radius: 2vh;
-            margin: 3vh auto;
+            border-radius: 2.5vh;
+            margin: 2vh auto;
             overflow: hidden;
             position: relative;
         }
@@ -107,22 +150,22 @@
             font-weight: bold;
             color: #000;
             white-space: nowrap;
-            font-size: clamp(12px, 3vw, 16px);
+            font-size: clamp(14px, 4vw, 20px);
         }
 
         #pages {
             display: flex;
             justify-content: center;
             width: 100%;
-            margin-top: 3vh;
+            margin-top: 2vh;
         }
 
         .page-button {
-            padding: 2vh 4vw;
-            font-size: clamp(14px, 3.5vw, 18px);
+            padding: 1.5vh 3vw;
+            font-size: clamp(16px, 4vw, 22px);
             background: linear-gradient(45deg, #ffd700, #ffa500);
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             color: #000000;
             cursor: pointer;
             margin: 0 2vw;
@@ -131,80 +174,115 @@
             font-weight: bold;
         }
 
-        #bonusPage, #rulesPage {
-            width: 90%;
-            max-width: 400px;
-            max-height: 80vh;
-            padding: 5vw;
+        .page-button:active {
+            transform: scale(0.95);
         }
 
-        #bonusTitle {
-            font-size: clamp(20px, 5vw, 24px);
+        #bonusPage, #rulesPage {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 20px;
+            padding: 5vw;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #bonusTitle, #rulesPage h2 {
+            font-size: clamp(24px, 6vw, 32px);
+            text-align: center;
             margin-bottom: 3vh;
+            color: #ffd700;
         }
 
         #dailyCheckinButton {
             width: 100%;
             padding: 2vh 3vw;
-            font-size: clamp(14px, 3.5vw, 18px);
+            font-size: clamp(18px, 4.5vw, 24px);
+            background: linear-gradient(45deg, #ffd700, #ffa500);
+            border: none;
+            border-radius: 10px;
+            color: #000000;
+            cursor: pointer;
             margin: 2vh 0;
+            transition: transform 0.1s, opacity 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
         }
 
-        #rulesPage h2 {
-            font-size: clamp(20px, 5vw, 24px);
-            margin-bottom: 3vh;
+        #dailyCheckinButton:active {
+            transform: scale(0.95);
+        }
+
+        #dailyCheckinButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #rulesPage ol {
+            padding-left: 5vw;
         }
 
         #rulesPage li {
-            font-size: clamp(14px, 3.5vw, 16px);
             margin-bottom: 2vh;
+            color: #ffd700;
+            font-size: clamp(16px, 4vw, 20px);
         }
 
         #notification {
-            font-size: clamp(14px, 3.5vw, 16px);
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 215, 0, 0.9);
+            color: #000;
             padding: 2vh 3vw;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(16px, 4vw, 20px);
         }
 
-        @media (min-width: 768px) {
+        @media (min-aspect-ratio: 1/1) {
             #gameContainer {
-                padding: 40px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
             }
 
             #title {
-                font-size: 28px;
-                padding: 15px 30px;
+                width: 100%;
+                margin-bottom: 2vh;
             }
 
-            #score {
-                font-size: 36px;
-                padding: 15px 30px;
+            #scoreContainer {
+                order: -1;
+                margin-bottom: 0;
+                width: auto;
             }
 
             #coinContainer {
-                width: 300px;
-                height: 300px;
+                width: 50vmin;
+                height: 50vmin;
+                margin: 0;
             }
 
-            .page-button, #dailyCheckinButton {
-                font-size: 18px;
-                padding: 15px 30px;
+            #progressBar {
+                width: 40%;
+                height: 4vh;
             }
 
-            #tappingPoints {
-                font-size: 16px;
-            }
-
-            #bonusTitle, #rulesPage h2 {
-                font-size: 24px;
-            }
-
-            #rulesPage li {
-                font-size: 16px;
-            }
-
-            #notification {
-                font-size: 16px;
-                padding: 15px 30px;
+            #pages {
+                width: 40%;
+                margin-top: 0;
             }
         }
     </style>

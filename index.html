@@ -23,6 +23,208 @@
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
+            padding: 5vw;
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #title {
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3vh;
+            color: #ff0000;
+            padding: 2vh 3vw;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #4a0000, #8a0000);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #scoreContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 3vh;
+        }
+
+        #score {
+            font-family: 'Roboto', sans-serif;
+            font-size: clamp(24px, 6vw, 36px);
+            font-weight: bold;
+            padding: 2vh 3vw;
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+
+        #coinContainer {
+            width: 70vw;
+            height: 70vw;
+            max-width: 300px;
+            max-height: 300px;
+            perspective: 1000px;
+            margin: 5vh auto;
+            cursor: pointer;
+        }
+
+        #coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.3s;
+        }
+
+        #progressBar {
+            width: 90%;
+            height: 4vh;
+            background-color: #333;
+            border-radius: 2vh;
+            margin: 3vh auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #progress {
+            width: 100%;
+            height: 100%;
+            background-color: #ffd700;
+            transition: width 0.5s;
+        }
+
+        #tappingPoints {
+            font-family: 'Roboto', sans-serif;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #000;
+            white-space: nowrap;
+            font-size: clamp(12px, 3vw, 16px);
+        }
+
+        #pages {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 3vh;
+        }
+
+        .page-button {
+            padding: 2vh 4vw;
+            font-size: clamp(14px, 3.5vw, 18px);
+            background: linear-gradient(45deg, #ffd700, #ffa500);
+            border: none;
+            border-radius: 8px;
+            color: #000000;
+            cursor: pointer;
+            margin: 0 2vw;
+            transition: transform 0.1s;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+        }
+
+        #bonusPage, #rulesPage {
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            padding: 5vw;
+        }
+
+        #bonusTitle {
+            font-size: clamp(20px, 5vw, 24px);
+            margin-bottom: 3vh;
+        }
+
+        #dailyCheckinButton {
+            width: 100%;
+            padding: 2vh 3vw;
+            font-size: clamp(14px, 3.5vw, 18px);
+            margin: 2vh 0;
+        }
+
+        #rulesPage h2 {
+            font-size: clamp(20px, 5vw, 24px);
+            margin-bottom: 3vh;
+        }
+
+        #rulesPage li {
+            font-size: clamp(14px, 3.5vw, 16px);
+            margin-bottom: 2vh;
+        }
+
+        #notification {
+            font-size: clamp(14px, 3.5vw, 16px);
+            padding: 2vh 3vw;
+        }
+
+        @media (min-width: 768px) {
+            #gameContainer {
+                padding: 40px;
+            }
+
+            #title {
+                font-size: 28px;
+                padding: 15px 30px;
+            }
+
+            #score {
+                font-size: 36px;
+                padding: 15px 30px;
+            }
+
+            #coinContainer {
+                width: 300px;
+                height: 300px;
+            }
+
+            .page-button, #dailyCheckinButton {
+                font-size: 18px;
+                padding: 15px 30px;
+            }
+
+            #tappingPoints {
+                font-size: 16px;
+            }
+
+            #bonusTitle, #rulesPage h2 {
+                font-size: 24px;
+            }
+
+            #rulesPage li {
+                font-size: 16px;
+            }
+
+            #notification {
+                font-size: 16px;
+                padding: 15px 30px;
+            }
+        }
+    </style>
+</head>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #gameContainer {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
             padding: 20px;
             box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
             width: 90%;
